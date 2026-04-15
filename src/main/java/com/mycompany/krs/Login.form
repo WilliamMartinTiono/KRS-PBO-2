@@ -30,7 +30,7 @@
                       <EmptySpace min="-2" pref="34" max="-2" attributes="0"/>
                       <Component id="btnLogin" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="28" max="-2" attributes="0"/>
-                      <Component id="jButton2" min="-2" max="-2" attributes="0"/>
+                      <Component id="btnReset" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
                       <Group type="103" groupAlignment="0" attributes="0">
@@ -43,7 +43,7 @@
                           <Component id="txtPassword" alignment="0" pref="145" max="32767" attributes="0"/>
                       </Group>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="cbShowPass" min="-2" max="-2" attributes="0"/>
+                      <Component id="cbShowPassword" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace pref="24" max="32767" attributes="0"/>
@@ -63,13 +63,13 @@
                   <Component id="jLabel2" alignment="0" min="-2" max="-2" attributes="0"/>
                   <Group type="103" alignment="0" groupAlignment="3" attributes="0">
                       <Component id="txtPassword" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="cbShowPass" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="cbShowPassword" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace min="-2" pref="32" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="btnLogin" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jButton2" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnReset" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace pref="138" max="32767" attributes="0"/>
           </Group>
@@ -97,20 +97,20 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="txtPasswordActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JCheckBox" name="cbShowPass">
+    <Component class="javax.swing.JCheckBox" name="cbShowPassword">
       <Properties>
         <Property name="text" type="java.lang.String" value="Show Password"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cbShowPassActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cbShowPasswordActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="jButton2">
+    <Component class="javax.swing.JButton" name="btnReset">
       <Properties>
         <Property name="text" type="java.lang.String" value="Reset"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnResetActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnLogin">

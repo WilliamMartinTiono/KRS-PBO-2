@@ -3,7 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package com.mycompany.krs;
-
+import java.sql.ResultSet;
+import javax.swing.JOptionPane;
 /**
  *
  * @author User
@@ -17,6 +18,7 @@ public class Login extends javax.swing.JFrame {
      */
     public Login() {
         initComponents();
+        
     }
 
     /**
@@ -32,8 +34,8 @@ public class Login extends javax.swing.JFrame {
         txtUsername = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         txtPassword = new javax.swing.JPasswordField();
-        cbShowPass = new javax.swing.JCheckBox();
-        jButton2 = new javax.swing.JButton();
+        cbShowPassword = new javax.swing.JCheckBox();
+        btnReset = new javax.swing.JButton();
         btnLogin = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -54,17 +56,17 @@ public class Login extends javax.swing.JFrame {
             }
         });
 
-        cbShowPass.setText("Show Password");
-        cbShowPass.addActionListener(new java.awt.event.ActionListener() {
+        cbShowPassword.setText("Show Password");
+        cbShowPassword.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cbShowPassActionPerformed(evt);
+                cbShowPasswordActionPerformed(evt);
             }
         });
 
-        jButton2.setText("Reset");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        btnReset.setText("Reset");
+        btnReset.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                btnResetActionPerformed(evt);
             }
         });
 
@@ -86,7 +88,7 @@ public class Login extends javax.swing.JFrame {
                         .addGap(34, 34, 34)
                         .addComponent(btnLogin)
                         .addGap(28, 28, 28)
-                        .addComponent(jButton2))
+                        .addComponent(btnReset))
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel1)
@@ -96,7 +98,7 @@ public class Login extends javax.swing.JFrame {
                             .addComponent(txtUsername)
                             .addComponent(txtPassword, javax.swing.GroupLayout.DEFAULT_SIZE, 145, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(cbShowPass)))
+                        .addComponent(cbShowPassword)))
                 .addContainerGap(24, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
@@ -111,11 +113,11 @@ public class Login extends javax.swing.JFrame {
                     .addComponent(jLabel2)
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(cbShowPass)))
+                        .addComponent(cbShowPassword)))
                 .addGap(32, 32, 32)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnLogin)
-                    .addComponent(jButton2))
+                    .addComponent(btnReset))
                 .addContainerGap(138, Short.MAX_VALUE))
         );
 
@@ -130,75 +132,79 @@ public class Login extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtPasswordActionPerformed
 
-    private void cbShowPassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbShowPassActionPerformed
-        // TODO add your handling code here:
-        if (cbShowPass.isSelected()) {
-            // Jika dicentang, perlihatkan password (setEchoChar 0 artinya normal)
-            txtPassword.setEchoChar((char) 0);
-        } else {
-            // Jika tidak dicentang, samarkan pakai bintang
-            txtPassword.setEchoChar('*');
-        }
-    }//GEN-LAST:event_cbShowPassActionPerformed
+    private void cbShowPasswordActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbShowPasswordActionPerformed
+// Jika dicentang, tampilkan karakter asli. Jika tidak, jadikan bintang (*)
+    if (cbShowPassword.isSelected()) {
+        txtPassword.setEchoChar((char) 0); // Menampilkan password
+    } else {
+        txtPassword.setEchoChar('*'); // Menyembunyikan password
+    }
+    }//GEN-LAST:event_cbShowPasswordActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-        // Kosongkan Username dan Password
-        txtUsername.setText("");
-        txtPassword.setText("");
-
-        // Pindahkan kursor (fokus) kembali ke kolom username biar enak ngetik ulang
-        txtUsername.requestFocus();
-    }//GEN-LAST:event_jButton2ActionPerformed
+    private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
+// Mengosongkan isian teks
+    txtUsername.setText("");
+    txtPassword.setText("");
+    
+    // Mengarahkan kursor kembali ke kolom username
+    txtUsername.requestFocus();
+    }//GEN-LAST:event_btnResetActionPerformed
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
-        // TODO add your handling code here:
         try {
-            String user = txtUsername.getText();
-            String pass = new String(txtPassword.getPassword()); // Ambil password dengan aman
-
-            // Validasi input kosong
-            if (user.isEmpty() || pass.isEmpty()) {
-                javax.swing.JOptionPane.showMessageDialog(null, "Username dan Password tidak boleh kosong!");
-                return;
-            }
-
-            // --- INI PERUBAHANNYA (Hanya nambah kata BINARY) ---
-            String sql = "SELECT * FROM users WHERE BINARY username = ? AND BINARY password = ?";
-
-            java.sql.Connection conn = (java.sql.Connection) KoneksiDB.configDB();
-            java.sql.PreparedStatement pst = conn.prepareStatement(sql);
-
-            pst.setString(1, user);
-            pst.setString(2, pass);
-
-            java.sql.ResultSet res = pst.executeQuery();
-
-            if (res.next()) {
-                // Pastikan dua baris ini ada:
-                String namaLengkap = res.getString("nama_lengkap");
-                String role = res.getString("role");
-
-                // Handle jika null
-                if (namaLengkap == null) {
-                    namaLengkap = user;
-                }
-
-                javax.swing.JOptionPane.showMessageDialog(null, "Login Berhasil!");
-
-                // PANGGIL MENU UTAMA (Error akan hilang jika Langkah 1 sukses)
-                new MenuUtama(namaLengkap, role).setVisible(true);
-
-                this.dispose();
+        // 1. Mengambil data yang diketik user
+        String username = txtUsername.getText();
+        String password = new String(txtPassword.getPassword());
+        
+        Database db = new Database();
+        
+        // 2. Cek kecocokan di tabel pusat akun (di databasemu namanya tabel 'admin')
+        String kondisiLogin = "username = '" + username + "' AND password = '" + password + "'";
+        java.sql.ResultSet rsLogin = (java.sql.ResultSet) db.readDB("id_admin", "admin", kondisiLogin);
+        
+        if (rsLogin != null && rsLogin.next()) {
+            // Jika akun ditemukan, simpan ID-nya
+            String idUser = rsLogin.getString("id_admin");
+            
+            // 3. Cek apakah ID ini milik MAHASISWA
+            java.sql.ResultSet rsMhs = (java.sql.ResultSet) db.readDB("nim", "mahasiswa", "id_user = '" + idUser + "'");
+            
+            if (rsMhs != null && rsMhs.next()) {
+                
+                javax.swing.JOptionPane.showMessageDialog(this, "Login Berhasil!\nSelamat Datang Mahasiswa.");
+                // TODO: Buka Form Menu Mahasiswa di sini
+                
             } else {
-                // LOGIN GAGAL
-                javax.swing.JOptionPane.showMessageDialog(null,
-                    "Login Gagal! Username atau Password Salah.\n(Perhatikan Huruf Besar/Kecil)");
+                // 4. Jika bukan mahasiswa, cek apakah ID ini milik DOSEN
+                java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn", "dosen", "id_user = '" + idUser + "'");
+                
+                if (rsDosen != null && rsDosen.next()) {
+                    
+                    javax.swing.JOptionPane.showMessageDialog(this, "Login Berhasil!\nSelamat Datang Dosen.");
+                    // TODO: Buka Form Menu Dosen di sini
+                    
+                } else {
+                    
+                    // 5. Jika bukan mahasiswa dan bukan dosen, berarti MURNI ADMIN
+                    javax.swing.JOptionPane.showMessageDialog(this, "Login Berhasil!\nSelamat Datang Admin.");
+                    // TODO: Buka Form Menu Admin di sini
+                    
+                }
             }
-
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+            
+            // Menutup form login setelah berhasil masuk
+            // this.dispose(); 
+            
+        } else {
+            // Jika username/password salah dari awal
+            javax.swing.JOptionPane.showMessageDialog(this, "Username atau Password salah!", "Login Gagal", javax.swing.JOptionPane.ERROR_MESSAGE);
+            txtPassword.setText("");
+            txtPassword.requestFocus();
         }
+        
+    } catch (Exception e) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Terjadi Kesalahan: " + e.getMessage());
+    }
     }//GEN-LAST:event_btnLoginActionPerformed
 
     /**
@@ -228,8 +234,8 @@ public class Login extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnLogin;
-    private javax.swing.JCheckBox cbShowPass;
-    private javax.swing.JButton jButton2;
+    private javax.swing.JButton btnReset;
+    private javax.swing.JCheckBox cbShowPassword;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPasswordField txtPassword;
