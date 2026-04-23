@@ -187,13 +187,15 @@ public class Login extends javax.swing.JFrame {
                     
                     // 5. Jika bukan mahasiswa dan bukan dosen, berarti MURNI ADMIN
                     javax.swing.JOptionPane.showMessageDialog(this, "Login Berhasil!\nSelamat Datang Admin.");
-                    // TODO: Buka Form Menu Admin di sini
+                    // 1. Membuka form MenuUtamaAdmin
+                    MenuUtamaAdmin menuAdmin = new MenuUtamaAdmin();
+                    menuAdmin.setVisible(true); 
                     
                 }
             }
             
             // Menutup form login setelah berhasil masuk
-            // this.dispose(); 
+            this.dispose(); 
             
         } else {
             // Jika username/password salah dari awal

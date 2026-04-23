@@ -14,7 +14,7 @@ import java.sql.ResultSet;
  * @author User
  */
 public class Database {
-    String host = "jdbc:mysql://localhost:3306/krs_db";
+    String host = "jdbc:mysql://localhost:3306/krspbo2lancar";
     String username = "root";
     String password = "";
 
@@ -42,7 +42,6 @@ public class Database {
                 String query = "SELECT " + kolom + " FROM " + tabel + " WHERE " + kondisi + ";";
                 Statement st = con.createStatement();
                 ResultSet rs = st.executeQuery(query);
-                con.close();
                 
                 return rs;
             }catch (SQLException e){
