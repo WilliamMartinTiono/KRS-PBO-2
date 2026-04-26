@@ -3,18 +3,68 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.krs;
+import java.sql.ResultSet;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JOptionPane;
 
 /**
  *
  * @author User
  */
 public class PanelProdi extends javax.swing.JPanel {
+    
+// Method untuk menampilkan data ke tabel
+ private void tampilData() {
+     DefaultTableModel model = new DefaultTableModel();
+     model.addColumn("ID Prodi");
+     model.addColumn("Nama Prodi");
+     tblProdi.setModel(model);
 
+     try {
+         Database db = new Database();
+         // Kondisi "1=1" digunakan agar semua data terpanggil (karena fungsi readDB kamu wajib pakai WHERE)
+         ResultSet rs = (ResultSet) db.readDB("*", "prodi", "1=1");
+
+         while (rs != null && rs.next()) {
+             model.addRow(new Object[]{
+                 rs.getString("id_prodi"),
+                 rs.getString("nama_prodi")
+             });
+         }
+     } catch (Exception e) {
+         JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
+     }
+ }
+ // Method untuk membuat ID otomatis
+    private void autoNumber() {
+        try {
+            Database db = new Database();
+            // Mengambil angka ID paling besar (MAX) dari tabel prodi
+            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("MAX(id_prodi) AS max_id", "prodi", "1=1");
+            
+            if (rs != null && rs.next()) {
+                // Ambil angka terbesarnya, lalu tambah 1
+                int idBaru = rs.getInt("max_id") + 1; 
+                txtIdProdi.setText(String.valueOf(idBaru));
+            } else {
+                // Jika tabel masih kosong sama sekali, mulai dari angka 1
+                txtIdProdi.setText("1"); 
+            }
+            
+            // Kunci textfield ID agar user tidak bisa iseng mengubahnya
+            txtIdProdi.setEditable(false); 
+            
+        } catch (Exception e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Error Auto Number: " + e.getMessage());
+        }
+    }
     /**
      * Creates new form PanelProdi
      */
     public PanelProdi() {
         initComponents();
+        tampilData();
+        autoNumber();
     }
 
     /**
@@ -27,29 +77,253 @@ public class PanelProdi extends javax.swing.JPanel {
     private void initComponents() {
 
         jLabel1 = new javax.swing.JLabel();
+        jLabel2 = new javax.swing.JLabel();
+        jLabel4 = new javax.swing.JLabel();
+        txtIdProdi = new javax.swing.JTextField();
+        txtNamaProdi = new javax.swing.JTextField();
+        btnSimpan = new javax.swing.JButton();
+        btnUbah = new javax.swing.JButton();
+        btnHapus = new javax.swing.JButton();
+        btnReset = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        tblProdi = new javax.swing.JTable();
 
         jLabel1.setText("Kelola Data Prodi");
+
+        jLabel2.setText("ID Prodi");
+
+        jLabel4.setText("Nama Prodi");
+
+        txtIdProdi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtIdProdiActionPerformed(evt);
+            }
+        });
+
+        txtNamaProdi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtNamaProdiActionPerformed(evt);
+            }
+        });
+
+        btnSimpan.setText("Simpan");
+        btnSimpan.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSimpanActionPerformed(evt);
+            }
+        });
+
+        btnUbah.setText("Ubah");
+        btnUbah.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUbahActionPerformed(evt);
+            }
+        });
+
+        btnHapus.setText("Hapus");
+        btnHapus.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnHapusActionPerformed(evt);
+            }
+        });
+
+        btnReset.setText("Reset");
+        btnReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnResetActionPerformed(evt);
+            }
+        });
+
+        tblProdi.setModel(new javax.swing.table.DefaultTableModel(
+            new Object [][] {
+                {null, null},
+                {null, null},
+                {null, null},
+                {null, null}
+            },
+            new String [] {
+                "ID Prodi", "Nama Prodi"
+            }
+        ));
+        tblProdi.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                tblProdiMouseClicked(evt);
+            }
+        });
+        jScrollPane1.setViewportView(tblProdi);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(151, 151, 151)
-                .addComponent(jLabel1)
-                .addContainerGap(159, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addContainerGap()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel4)
+                                .addComponent(jLabel2))
+                            .addGap(18, 18, 18)
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(txtNamaProdi)
+                                .addComponent(txtIdProdi)))
+                        .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                            .addGap(151, 151, 151)
+                            .addComponent(jLabel1)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(btnSimpan)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnUbah)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnHapus)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnReset))
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 375, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(12, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jLabel1)
-                .addContainerGap(278, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(txtIdProdi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtNamaProdi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 213, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnSimpan)
+                    .addComponent(btnUbah)
+                    .addComponent(btnHapus)
+                    .addComponent(btnReset))
+                .addContainerGap(87, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void txtIdProdiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtIdProdiActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtIdProdiActionPerformed
+
+    private void txtNamaProdiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtNamaProdiActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtNamaProdiActionPerformed
+
+    private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
+        // TODO add your handling code here:
+        String id = txtIdProdi.getText();
+        
+        if (id.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Pilih data di tabel yang ingin dihapus!");
+            return;
+        }
+
+        int konfirmasi = JOptionPane.showConfirmDialog(this, "Yakin hapus data prodi ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+        
+        if (konfirmasi == JOptionPane.YES_OPTION) {
+            Database db = new Database();
+            // deleteDB(tabel, kondisi)
+            boolean sukses = db.deleteDB("prodi", "id_prodi = '" + id + "'");
+            
+            if (sukses) {
+                JOptionPane.showMessageDialog(this, "Data berhasil dihapus!");
+                tampilData();
+                btnResetActionPerformed(evt); // Akan error sedikit jika tombol reset belum diklik 2x, lanjut ke langkah terakhir di bawah.
+            }
+        }
+    }//GEN-LAST:event_btnHapusActionPerformed
+
+    private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
+        // TODO add your handling code here:
+        String id = txtIdProdi.getText();
+        String nama = txtNamaProdi.getText();
+        
+        if (id.isEmpty() || nama.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "ID dan Nama Prodi tidak boleh kosong!");
+            return;
+        }
+
+        Database db = new Database();
+        // Memanggil createDB: tabel "prodi", kolomnya "id_prodi, nama_prodi", nilainya dari inputan textfield
+        boolean sukses = db.createDB("prodi", "id_prodi, nama_prodi", "'" + id + "', '" + nama + "'");
+        
+        if (sukses) {
+            JOptionPane.showMessageDialog(this, "Data berhasil disimpan!");
+            tampilData(); // Refresh tabel
+            btnResetActionPerformed(evt); // Kosongkan textfield
+        } else {
+            JOptionPane.showMessageDialog(this, "Gagal menyimpan data!");
+        }
+    }//GEN-LAST:event_btnSimpanActionPerformed
+
+    private void tblProdiMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblProdiMouseClicked
+        // TODO add your handling code here:
+        int baris = tblProdi.getSelectedRow();
+        if (baris != -1) {
+            // Mengambil data dari baris yang diklik dan memasukkannya ke textfield
+            txtIdProdi.setText(tblProdi.getValueAt(baris, 0).toString());
+            txtNamaProdi.setText(tblProdi.getValueAt(baris, 1).toString());
+            txtIdProdi.setEditable(false);
+        }
+    }//GEN-LAST:event_tblProdiMouseClicked
+
+    private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
+        // TODO add your handling code here:
+        String id = txtIdProdi.getText();
+        String nama = txtNamaProdi.getText();
+        
+        // Jika kolom ID MASIH bisa diedit, berarti user belum klik tabel
+        if (txtIdProdi.isEditable()) {
+            JOptionPane.showMessageDialog(this, "Silakan klik data di tabel terlebih dahulu untuk mengubahnya!");
+            return;
+        }
+
+        if (nama.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Prodi tidak boleh kosong!");
+            return;
+        }
+
+        Database db = new Database();
+        boolean sukses = db.updateDB("prodi", "nama_prodi = '" + nama + "'", "id_prodi = '" + id + "'");
+        
+        if (sukses) {
+            JOptionPane.showMessageDialog(this, "Data berhasil diubah!");
+            tampilData();
+            btnResetActionPerformed(evt);
+            // Memanggil reset agar kolom ID kembali terbuka
+        }
+    }//GEN-LAST:event_btnUbahActionPerformed
+
+    private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
+        // TODO add your handling code here:
+        txtIdProdi.setText("");
+        txtNamaProdi.setText("");
+        txtIdProdi.requestFocus();
+        autoNumber();
+        
+        // BUKA KEMBALI kunci kolom ID untuk input data baru
+        txtIdProdi.setEditable(true);
+        
+    }//GEN-LAST:event_btnResetActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnHapus;
+    private javax.swing.JButton btnReset;
+    private javax.swing.JButton btnSimpan;
+    private javax.swing.JButton btnUbah;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTable tblProdi;
+    private javax.swing.JTextField txtIdProdi;
+    private javax.swing.JTextField txtNamaProdi;
     // End of variables declaration//GEN-END:variables
 }
