@@ -22,34 +22,34 @@ private void tampilData() {
 
         try {
             Database db = new Database();
-            // Ambil semua data akun
             ResultSet rs = (ResultSet) db.readDB("*", "admin", "1=1");
             
             while (rs != null && rs.next()) {
                 String id = rs.getString("id_admin");
                 String user = rs.getString("username");
                 
-                // --- LOGIKA KECERDASAN STATUS ---
                 String status = "Tersedia / Admin Utama"; 
                 Database dbCek = new Database();
                 
-                ResultSet rsMhs = (ResultSet) dbCek.readDB("nim", "mahasiswa", "id_user = '" + id + "'");
+                // MENGINTIP NAMA MAHASISWA
+                ResultSet rsMhs = (ResultSet) dbCek.readDB("nim, nama_mhs", "mahasiswa", "id_user = '" + id + "'");
                 if (rsMhs != null && rsMhs.next()) {
-                    status = "Terpakai (Mahasiswa)";
+                    status = "Mahasiswa: " + rsMhs.getString("nama_mhs"); // Langsung tampilkan namanya!
                 } else {
-                    ResultSet rsDsn = (ResultSet) dbCek.readDB("nidn", "dosen", "id_user = '" + id + "'");
+                    // MENGINTIP NAMA DOSEN
+                    ResultSet rsDsn = (ResultSet) dbCek.readDB("nidn, nama_dosen", "dosen", "id_user = '" + id + "'");
                     if (rsDsn != null && rsDsn.next()) {
-                        status = "Terpakai (Dosen)";
+                        status = "Dosen: " + rsDsn.getString("nama_dosen"); // Langsung tampilkan namanya!
                     }
                 }
                 
-                // Masukkan data ke tabel, password disamarkan
                 model.addRow(new Object[]{id, user, "********", status});
             }
         } catch (Exception e) {
             javax.swing.JOptionPane.showMessageDialog(this, "Gagal memuat akun: " + e.getMessage());
         }
     }
+    
     /**
      * Creates new form PanelAkun
      */
@@ -263,24 +263,58 @@ private void tampilData() {
 
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
         // TODO add your handling code here:
-        String cari = txtCari.getText();
-    DefaultTableModel model = (DefaultTableModel) tblAkun.getModel();
-    model.setRowCount(0); // Kosongkan tabel
+     
+       // 1. Ambil kata kunci, hapus spasi (trim), dan kecilkan huruf
+        String keyword = txtCari.getText().toLowerCase().trim();
+        DefaultTableModel model = (DefaultTableModel) tblAkun.getModel();
+        model.setRowCount(0); 
 
-    try {
-        Database db = new Database();
-        ResultSet rs = (ResultSet) db.readDB("*", "admin", "username LIKE '%" + cari + "%'");
-        while (rs != null && rs.next()) {
-            model.addRow(new Object[]{
-                rs.getString("id_admin"),
-                rs.getString("username"),
-                "********",
-                "Hasil Pencarian"
-            });
+        if (keyword.isEmpty()) {
+            tampilData();
+            return;
         }
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Pencarian gagal: " + e.getMessage());
-    }
+
+        try {
+            Database db = new Database();
+            // 2. Ambil SEMUA akun dari tabel admin
+            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "admin", "1=1");
+            
+            while (rs != null && rs.next()) {
+                String id = rs.getString("id_admin");
+                String user = rs.getString("username");
+                String status = "Tersedia / Admin Utama"; 
+                
+                // 3. Cek apakah akun ini milik Mahasiswa
+                Database dbMhs = new Database();
+                java.sql.ResultSet rsMhs = (java.sql.ResultSet) dbMhs.readDB("nama_mhs", "mahasiswa", "id_user = '" + id + "'");
+                
+                if (rsMhs != null && rsMhs.next()) {
+                    status = "Mahasiswa: " + rsMhs.getString("nama_mhs");
+                } else {
+                    // 4. Cek apakah milik Dosen
+                    Database dbDsn = new Database();
+                    java.sql.ResultSet rsDsn = (java.sql.ResultSet) dbDsn.readDB("nama_dosen", "dosen", "id_user = '" + id + "'");
+                    if (rsDsn != null && rsDsn.next()) {
+                        status = "Dosen: " + rsDsn.getString("nama_dosen");
+                    }
+                }
+                
+                // --- LOGIKA PENCARIAN GLOBAL ---
+                // Sekarang kita bandingkan keyword dengan Username ATAU Nama (Status)
+                if (user.toLowerCase().contains(keyword) || status.toLowerCase().contains(keyword)) {
+                    model.addRow(new Object[]{id, user, "********", status});
+                }
+            }
+            
+            if (model.getRowCount() == 0) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data '" + keyword + "' tidak ditemukan!");
+                tampilData();
+            }
+            
+        } catch (Exception e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        }
+    
     }//GEN-LAST:event_btnCariActionPerformed
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
@@ -308,25 +342,23 @@ private void tampilData() {
             txtPassword.setText("");
             txtUsername.setEditable(false);
 
-            // LOGIKA PENGECEKAN STATUS
             try {
                 Database db = new Database();
                 
-                // 1. Cek di tabel mahasiswa
-                java.sql.ResultSet rsMhs = (java.sql.ResultSet) db.readDB("nim", "mahasiswa", "id_user = '" + idUser + "'");
+                // AMBIL NAMA MAHASISWA
+                java.sql.ResultSet rsMhs = (java.sql.ResultSet) db.readDB("nim, nama_mhs", "mahasiswa", "id_user = '" + idUser + "'");
                 if (rsMhs != null && rsMhs.next()) {
-                    lblStatus.setText("Status: Terpakai oleh Mahasiswa (NIM: " + rsMhs.getString("nim") + ")");
-                    lblStatus.setForeground(java.awt.Color.RED); // Ubah warna jadi merah (peringatan)
+                    lblStatus.setText("Status: Dipakai oleh " + rsMhs.getString("nama_mhs"));
+                    lblStatus.setForeground(java.awt.Color.RED); 
                 } else {
-                    // 2. Jika tidak ada di mahasiswa, cek di tabel dosen
-                    java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn", "dosen", "id_user = '" + idUser + "'");
+                    // AMBIL NAMA DOSEN
+                    java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn, nama_dosen", "dosen", "id_user = '" + idUser + "'");
                     if (rsDosen != null && rsDosen.next()) {
-                        lblStatus.setText("Status: Terpakai oleh Dosen (NIDN: " + rsDosen.getString("nidn") + ")");
+                        lblStatus.setText("Status: Dipakai oleh " + rsDosen.getString("nama_dosen"));
                         lblStatus.setForeground(java.awt.Color.RED);
                     } else {
-                        // 3. Jika tidak ada di keduanya
                         lblStatus.setText("Status: Tersedia / Belum Terpakai");
-                        lblStatus.setForeground(new java.awt.Color(0, 153, 0)); // Warna hijau (aman)
+                        lblStatus.setForeground(new java.awt.Color(0, 153, 0)); 
                     }
                 }
             } catch (Exception e) {

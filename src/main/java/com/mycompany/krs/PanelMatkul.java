@@ -42,6 +42,7 @@ private void tampilData() {
      */
     public PanelMatkul() {
         initComponents();
+        tampilData();
     }
 
     /**
