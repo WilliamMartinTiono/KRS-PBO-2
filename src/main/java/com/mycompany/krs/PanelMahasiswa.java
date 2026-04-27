@@ -28,12 +28,6 @@ private void loadComboBox() {
                 cbDosenWali.addItem(rsDosen.getString("nidn") + " - " + rsDosen.getString("nama_dosen"));
             }
 
-            // 3. Isi combobox Akun User
-            java.sql.ResultSet rsUser = (java.sql.ResultSet) db.readDB("id_admin, username", "admin", "1=1");
-            cbUser.removeAllItems();
-            while (rsUser != null && rsUser.next()) {
-                cbUser.addItem(rsUser.getString("id_admin") + " - " + rsUser.getString("username"));
-            }
         } catch (Exception e) {
             javax.swing.JOptionPane.showMessageDialog(this, "Gagal memuat dropdown: " + e.getMessage());
         }
@@ -102,9 +96,7 @@ private void loadComboBox() {
         jLabel7 = new javax.swing.JLabel();
         cbDosenWali = new javax.swing.JComboBox<>();
         jLabel8 = new javax.swing.JLabel();
-        jLabel9 = new javax.swing.JLabel();
         cbProdi = new javax.swing.JComboBox<>();
-        cbUser = new javax.swing.JComboBox<>();
 
         jLabel1.setText("Data Mahasiswa");
 
@@ -120,13 +112,13 @@ private void loadComboBox() {
 
         tblMahasiswa.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null},
-                {null, null, null, null}
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null},
+                {null, null, null, null, null}
             },
             new String [] {
-                "NIM", "Nama Mahasiswa", "Pilih Prodi", "Pilih Akun Login"
+                "NIM", "Nama Mahasiswa", "Alamat", "Dosen Wali", "Pilih Prodi"
             }
         ));
         tblMahasiswa.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -169,19 +161,15 @@ private void loadComboBox() {
         jLabel7.setText("Dosen Wali");
 
         cbDosenWali.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        cbDosenWali.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbDosenWaliActionPerformed(evt);
+            }
+        });
 
         jLabel8.setText("Pilih Prodi");
 
-        jLabel9.setText("Pilih Akun Login");
-
         cbProdi.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        cbUser.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        cbUser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cbUserActionPerformed(evt);
-            }
-        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -199,8 +187,7 @@ private void loadComboBox() {
                                     .addComponent(jLabel2)
                                     .addComponent(jLabel6)
                                     .addComponent(jLabel7)
-                                    .addComponent(jLabel8)
-                                    .addComponent(jLabel9))
+                                    .addComponent(jLabel8))
                                 .addGap(32, 32, 32)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(txtNamaMhs, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -209,8 +196,7 @@ private void loadComboBox() {
                                     .addComponent(txtAlamat, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(cbDosenWali, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel4)
-                                    .addComponent(cbProdi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(cbUser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addComponent(cbProdi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(btnSimpan)
                                 .addGap(18, 18, 18)
@@ -247,11 +233,7 @@ private void loadComboBox() {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbProdi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(cbUser, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel9))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(34, 34, 34)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -271,25 +253,50 @@ private void loadComboBox() {
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
-        String nim = txtNim.getText();
-        String nama = txtNamaMhs.getText();
-        String alamat = txtAlamat.getText();
-        String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
-        String idDosen = cbDosenWali.getSelectedItem().toString().split(" - ")[0];
-        String idUser = cbUser.getSelectedItem().toString().split(" - ")[0];
-        
-        if (nim.isEmpty() || nama.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "NIM dan Nama harus diisi!"); return;
+// Klik 2x btnSimpan
+    String nim = txtNim.getText();
+    String nama = txtNamaMhs.getText();
+    String alamat = txtAlamat.getText();
+    String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
+    String idDosen = cbDosenWali.getSelectedItem().toString().split(" - ")[0];
+
+    if (nim.isEmpty() || nama.isEmpty() || alamat.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Semua data harus diisi!");
+        return;
+    }
+
+    Database db = new Database();
+    try {
+        // STEP 1: Validasi apakah NIM sudah terdaftar sebagai Username
+        ResultSet rsCek = (ResultSet) db.readDB("username", "admin", "username = '" + nim + "'");
+        if (rsCek != null && rsCek.next()) {
+            JOptionPane.showMessageDialog(this, "NIM ini sudah memiliki akun!");
+            return;
         }
 
-        Database db = new Database();
-        String kolom = "nim, nama_mhs, alamat, id_prodi, id_dosen_wali, id_user";
-        String nilai = "'" + nim + "', '" + nama + "', '" + alamat + "', '" + idProdi + "', '" + idDosen + "', '" + idUser + "'";
+        // STEP 2: Buat Akun Otomatis di tabel admin (User & Pass = NIM)
+        boolean akunOk = db.createDB("admin", "username, password", "'" + nim + "', '" + nim + "'");
         
-        if (db.createDB("mahasiswa", kolom, nilai)) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Data Mahasiswa berhasil disimpan!");
-            tampilData(); btnResetActionPerformed(evt);
+        if (akunOk) {
+            // STEP 3: Ambil id_admin yang baru saja dibuat
+            ResultSet rsId = (ResultSet) db.readDB("id_admin", "admin", "username = '" + nim + "'");
+            if (rsId != null && rsId.next()) {
+                String idBaru = rsId.getString("id_admin");
+
+                // STEP 4: Simpan data ke tabel mahasiswa menggunakan ID tersebut
+                String kolomMhs = "nim, nama_mhs, alamat, id_prodi, id_dosen_wali, id_user";
+                String nilaiMhs = "'" + nim + "', '" + nama + "', '" + alamat + "', '" + idProdi + "', '" + idDosen + "', '" + idBaru + "'";
+                
+                if (db.createDB("mahasiswa", kolomMhs, nilaiMhs)) {
+                    JOptionPane.showMessageDialog(this, "Mahasiswa & Akun Otomatis Berhasil Dibuat!\nUsername: " + nim + "\nPassword: " + nim);
+                    tampilData();
+                    btnResetActionPerformed(evt);
+                }
+            }
         }
+    } catch (Exception e) {
+        JOptionPane.showMessageDialog(this, "Error Sistem: " + e.getMessage());
+    }
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
@@ -299,51 +306,53 @@ private void loadComboBox() {
         String alamat = txtAlamat.getText();
         String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
         String idDosen = cbDosenWali.getSelectedItem().toString().split(" - ")[0];
-        String idUser = cbUser.getSelectedItem().toString().split(" - ")[0];
         
+        // Validasi: Pastikan data sudah dipilih dari tabel
         if (txtNim.isEditable()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Pilih data di tabel dulu!"); return;
+            javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih data mahasiswa di tabel dulu!"); 
+            return;
         }
 
         Database db = new Database();
-        String nilaiUpdate = "nama_mhs = '" + nama + "', alamat = '" + alamat + "', id_prodi = '" + idProdi + "', id_dosen_wali = '" + idDosen + "', id_user = '" + idUser + "'";
+        // Query update sesuai nama kolom di database kamu
+        String nilaiUpdate = "nama_mhs = '" + nama + "', alamat = '" + alamat + "', id_prodi = '" + idProdi + "', id_dosen_wali = '" + idDosen + "'";
         
         if (db.updateDB("mahasiswa", nilaiUpdate, "nim = '" + nim + "'")) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Data berhasil diubah!");
-            tampilData(); btnResetActionPerformed(evt);
+            javax.swing.JOptionPane.showMessageDialog(this, "Data mahasiswa berhasil diperbarui!");
+            tampilData(); // Refresh tabel
+            btnResetActionPerformed(evt); // Bersihkan form
+        } else {
+            javax.swing.JOptionPane.showMessageDialog(this, "Gagal memperbarui data!");
         }
     }//GEN-LAST:event_btnUbahActionPerformed
 
     private void tblMahasiswaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblMahasiswaMouseClicked
         // TODO add your handling code here:
-        int baris = tblMahasiswa.getSelectedRow();
+       int baris = tblMahasiswa.getSelectedRow();
         if (baris != -1) {
+            // Mengisi textfield dari kolom tabel
             txtNim.setText(tblMahasiswa.getValueAt(baris, 0).toString());
             txtNamaMhs.setText(tblMahasiswa.getValueAt(baris, 1).toString());
             txtAlamat.setText(tblMahasiswa.getValueAt(baris, 2).toString());
+            
+            // Mengunci NIM agar tidak bisa diedit saat proses Ubah
             txtNim.setEditable(false);
             
-            // Set Prodi
+            // Sinkronisasi Dropdown Prodi (Kolom ke-4, index 3)
             String prodiDicari = tblMahasiswa.getValueAt(baris, 3).toString();
             for (int i = 0; i < cbProdi.getItemCount(); i++) {
                 if (cbProdi.getItemAt(i).toString().startsWith(prodiDicari + " -")) {
-                    cbProdi.setSelectedIndex(i); break;
+                    cbProdi.setSelectedIndex(i);
+                    break;
                 }
             }
             
-            // Set Dosen Wali
+            // Sinkronisasi Dropdown Dosen Wali (Kolom ke-5, index 4)
             String dosenDicari = tblMahasiswa.getValueAt(baris, 4).toString();
             for (int i = 0; i < cbDosenWali.getItemCount(); i++) {
                 if (cbDosenWali.getItemAt(i).toString().startsWith(dosenDicari + " -")) {
-                    cbDosenWali.setSelectedIndex(i); break;
-                }
-            }
-            
-            // Set User
-            String userDicari = tblMahasiswa.getValueAt(baris, 5).toString();
-            for (int i = 0; i < cbUser.getItemCount(); i++) {
-                if (cbUser.getItemAt(i).toString().startsWith(userDicari + " -")) {
-                    cbUser.setSelectedIndex(i); break;
+                    cbDosenWali.setSelectedIndex(i);
+                    break;
                 }
             }
         }
@@ -351,38 +360,51 @@ private void loadComboBox() {
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
-        String nim = txtNim.getText();
-        if (txtNim.isEditable()) {
-            JOptionPane.showMessageDialog(this, "Pilih data di tabel dulu!"); return;
-        }
+       // Klik 2x btnHapus
+    int baris = tblMahasiswa.getSelectedRow();
+    if (baris == -1) {
+        JOptionPane.showMessageDialog(this, "Pilih data di tabel!");
+        return;
+    }
 
-        int konfirmasi = JOptionPane.showConfirmDialog(this, "Yakin hapus mahasiswa NIM " + nim + "?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-        if (konfirmasi == JOptionPane.YES_OPTION) {
-            Database db = new Database();
-            if (db.deleteDB("mahasiswa", "nim = '" + nim + "'")) {
-                JOptionPane.showMessageDialog(this, "Data dihapus!");
-                tampilData(); btnResetActionPerformed(evt);
-            }
+    String nim = txtNim.getText();
+    // Ambil ID User dari kolom tabel (misal kolom ke-5)
+    String idUser = tblMahasiswa.getValueAt(baris, 5).toString(); 
+
+    int konfirmasi = JOptionPane.showConfirmDialog(this, "Menghapus Mahasiswa akan menghapus Akun Loginnya juga. Lanjutkan?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
+    
+    if (konfirmasi == JOptionPane.YES_OPTION) {
+        Database db = new Database();
+        // Hapus data mahasiswa dulu
+        if (db.deleteDB("mahasiswa", "nim = '" + nim + "'")) {
+            // Baru hapus akunnya di tabel admin
+            db.deleteDB("admin", "id_admin = '" + idUser + "'");
+            JOptionPane.showMessageDialog(this, "Data Mahasiswa dan Akun berhasil dihapus!");
+            tampilData();
+            btnResetActionPerformed(evt);
         }
+    }
     }//GEN-LAST:event_btnHapusActionPerformed
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
         // TODO add your handling code here:
+        // Mengosongkan kolom teks
         txtNim.setText("");
         txtNamaMhs.setText("");
         txtAlamat.setText("");
         
+        // Mengembalikan dropdown ke pilihan pertama
         if (cbProdi.getItemCount() > 0) cbProdi.setSelectedIndex(0);
         if (cbDosenWali.getItemCount() > 0) cbDosenWali.setSelectedIndex(0);
-        if (cbUser.getItemCount() > 0) cbUser.setSelectedIndex(0);
         
-        txtNim.setEditable(true); 
+        // Membuka kembali kunci NIM dan fokus ke kolom NIM
+        txtNim.setEditable(true);
         txtNim.requestFocus();
     }//GEN-LAST:event_btnResetActionPerformed
 
-    private void cbUserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbUserActionPerformed
+    private void cbDosenWaliActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbDosenWaliActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_cbUserActionPerformed
+    }//GEN-LAST:event_cbDosenWaliActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -392,7 +414,6 @@ private void loadComboBox() {
     private javax.swing.JButton btnUbah;
     private javax.swing.JComboBox<String> cbDosenWali;
     private javax.swing.JComboBox<String> cbProdi;
-    private javax.swing.JComboBox<String> cbUser;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -400,7 +421,6 @@ private void loadComboBox() {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tblMahasiswa;
     private javax.swing.JTextField txtAlamat;

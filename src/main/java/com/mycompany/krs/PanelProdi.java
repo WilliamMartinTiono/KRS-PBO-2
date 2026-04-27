@@ -280,15 +280,19 @@ public class PanelProdi extends javax.swing.JPanel {
         String nama = txtNamaProdi.getText();
         
         // Jika kolom ID MASIH bisa diedit, berarti user belum klik tabel
-        if (txtIdProdi.isEditable()) {
-            JOptionPane.showMessageDialog(this, "Silakan klik data di tabel terlebih dahulu untuk mengubahnya!");
+        
+        if (tblProdi.getSelectedRow() == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Silakan klik data di tabel terlebih dahulu!");
             return;
         }
+       
 
         if (nama.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Nama Prodi tidak boleh kosong!");
             return;
         }
+        
+
 
         Database db = new Database();
         boolean sukses = db.updateDB("prodi", "nama_prodi = '" + nama + "'", "id_prodi = '" + id + "'");

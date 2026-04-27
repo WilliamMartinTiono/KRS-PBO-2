@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 26, 2026 at 06:34 PM
+-- Generation Time: Apr 27, 2026 at 08:51 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,9 +38,7 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`id_admin`, `username`, `password`) VALUES
-(1, 'admin1', 'admin123'),
-(2, 'dosen1', 'dosen123'),
-(3, 'mhs1', 'mhs123');
+(1, 'admin1', 'a');
 
 -- --------------------------------------------------------
 
@@ -60,7 +58,7 @@ CREATE TABLE `dosen` (
 --
 
 INSERT INTO `dosen` (`nidn`, `nama_dosen`, `id_prodi`, `id_user`) VALUES
-('D001', 'Dr. Aris Permana', 1, 2);
+('2600001', 'Dr. Hendro', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -125,7 +123,7 @@ CREATE TABLE `mahasiswa` (
 --
 
 INSERT INTO `mahasiswa` (`nim`, `nama_mhs`, `alamat`, `id_prodi`, `id_dosen_wali`, `id_user`) VALUES
-('M001', 'Budi Santoso', NULL, NULL, NULL, 3);
+('2601', 'Hendro', 'Sedam', 1, '2600001', NULL);
 
 -- --------------------------------------------------------
 
@@ -139,6 +137,13 @@ CREATE TABLE `mata_kuliah` (
   `sks` int(11) DEFAULT NULL,
   `semester` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `mata_kuliah`
+--
+
+INSERT INTO `mata_kuliah` (`kode_mk`, `nama_mk`, `sks`, `semester`) VALUES
+('MK_1001', 'PBO II', 3, 4);
 
 -- --------------------------------------------------------
 
@@ -207,7 +212,8 @@ CREATE TABLE `prodi` (
 --
 
 INSERT INTO `prodi` (`id_prodi`, `nama_prodi`) VALUES
-(1, 'BD');
+(1, 'BD'),
+(2, 'KWU');
 
 --
 -- Indexes for dumped tables
@@ -300,6 +306,16 @@ ALTER TABLE `periode`
 --
 ALTER TABLE `prodi`
   ADD PRIMARY KEY (`id_prodi`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `admin`
+--
+ALTER TABLE `admin`
+  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
