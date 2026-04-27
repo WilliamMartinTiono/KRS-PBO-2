@@ -218,8 +218,9 @@ public class PanelProdi extends javax.swing.JPanel {
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
-        String id = txtIdProdi.getText();
+String id = txtIdProdi.getText();
         
+        // LOGIKA INI TIDAK AKAN PERNAH BERJALAN:
         if (id.isEmpty()) {
             JOptionPane.showMessageDialog(this, "Pilih data di tabel yang ingin dihapus!");
             return;

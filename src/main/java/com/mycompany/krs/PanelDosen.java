@@ -217,47 +217,57 @@ private void loadComboBox() {
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:String nidn = txtNidn.getText();
-        String nidn = txtNidn.getText();
-        String nama = txtNamaDosen.getText();
-        String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
-        
-        if (nidn.isEmpty() || nama.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "NIDN dan Nama harus diisi!");
+        // PROTEKSI AWAL: Mencegah NullPointerException jika dropdown Prodi kosong
+    if (cbProdi.getSelectedItem() == null) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Data Prodi belum tersedia! Silakan isi Data Prodi terlebih dahulu.");
+        return;
+    }
+
+    String nidn = txtNidn.getText();
+    String nama = txtNamaDosen.getText();
+    String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
+    
+    if (nidn.isEmpty() || nama.isEmpty()) {
+        javax.swing.JOptionPane.showMessageDialog(this, "NIDN dan Nama harus diisi!");
+        return;
+    }
+
+    Database db = new Database();
+    try {
+        // STEP 1: Cek apakah NIDN sudah terdaftar sebagai akun
+        java.sql.ResultSet rsCek = (java.sql.ResultSet) db.readDB("username", "admin", "username = '" + nidn + "'");
+        if (rsCek != null && rsCek.next()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "NIDN ini sudah memiliki akun di sistem!");
             return;
         }
 
-        Database db = new Database();
-        try {
-            // STEP 1: Cek apakah NIDN sudah terdaftar sebagai akun
-            java.sql.ResultSet rsCek = (java.sql.ResultSet) db.readDB("username", "admin", "username = '" + nidn + "'");
-            if (rsCek != null && rsCek.next()) {
-                javax.swing.JOptionPane.showMessageDialog(this, "NIDN ini sudah memiliki akun di sistem!");
-                return;
-            }
-
-            // STEP 2: Bikin akun Dosen otomatis (Username = NIDN, Password = NIDN)
-            boolean akunOk = db.createDB("admin", "username, password", "'" + nidn + "', '" + nidn + "'");
-            
-            if (akunOk) {
-                // STEP 3: Ambil ID Admin dari akun yang baru dibuat
-                java.sql.ResultSet rsId = (java.sql.ResultSet) db.readDB("id_admin", "admin", "username = '" + nidn + "'");
-                if (rsId != null && rsId.next()) {
-                    String idBaru = rsId.getString("id_admin");
-                    
-                    // STEP 4: Simpan data ke tabel Dosen
-                    String kolom = "nidn, nama_dosen, id_prodi, id_user";
-                    String nilai = "'" + nidn + "', '" + nama + "', '" + idProdi + "', '" + idBaru + "'";
-                    
-                    if (db.createDB("dosen", kolom, nilai)) {
-                        javax.swing.JOptionPane.showMessageDialog(this, "Data Dosen & Akun Otomatis Berhasil Dibuat!\nUsername: " + nidn + "\nPassword: " + nidn);
-                        tampilData();
-                        btnResetActionPerformed(evt);
-                    }
+        // STEP 2: Bikin akun Dosen otomatis (Username = NIDN, Password = NIDN)
+        boolean akunOk = db.createDB("admin", "username, password", "'" + nidn + "', '" + nidn + "'");
+        
+        if (akunOk) {
+            // STEP 3: Ambil ID Admin dari akun yang baru dibuat
+            java.sql.ResultSet rsId = (java.sql.ResultSet) db.readDB("id_admin", "admin", "username = '" + nidn + "'");
+            if (rsId != null && rsId.next()) {
+                String idBaru = rsId.getString("id_admin");
+                
+                // STEP 4: Simpan data ke tabel Dosen
+                String kolom = "nidn, nama_dosen, id_prodi, id_user";
+                String nilai = "'" + nidn + "', '" + nama + "', '" + idProdi + "', '" + idBaru + "'";
+                
+                if (db.createDB("dosen", kolom, nilai)) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Data Dosen & Akun Otomatis Berhasil Dibuat!\nUsername: " + nidn + "\nPassword: " + nidn);
+                    tampilData();
+                    btnResetActionPerformed(evt);
+                } else {
+                    // ROLLBACK: Hapus akun admin jika gagal masuk ke tabel dosen
+                    db.deleteDB("admin", "id_admin = '" + idBaru + "'");
+                    javax.swing.JOptionPane.showMessageDialog(this, "GAGAL menyimpan data ke tabel Dosen!");
                 }
             }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Error Sistem: " + e.getMessage());
         }
+    } catch (Exception e) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Error Sistem: " + e.getMessage());
+    }
         
     }//GEN-LAST:event_btnSimpanActionPerformed
 
@@ -292,56 +302,68 @@ private void loadComboBox() {
 
     private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
         // TODO add your handling code here:
-        String nidn = txtNidn.getText();
-        String nama = txtNamaDosen.getText();
-        String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
-        
-        if (txtNidn.isEditable()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Pilih data di tabel yang mau diubah!"); 
-            return;
-        }
+       // PROTEKSI AWAL: Mencegah NullPointerException
+    if (cbProdi.getSelectedItem() == null) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Data Prodi belum tersedia!");
+        return;
+    }
 
-        Database db = new Database();
-        String nilaiUpdate = "nama_dosen = '" + nama + "', id_prodi = '" + idProdi + "'";
-        
-        if (db.updateDB("dosen", nilaiUpdate, "nidn = '" + nidn + "'")) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Data dosen berhasil diubah!");
-            tampilData(); 
-            btnResetActionPerformed(evt);
-        } else {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal mengubah data dosen!");
-        }
+    String nidn = txtNidn.getText();
+    String nama = txtNamaDosen.getText();
+    String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
+    
+    // Gunakan getSelectedRow() seperti panel lain agar pasti dan konsisten
+    if (tblDosen.getSelectedRow() == -1) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Pilih data di tabel yang mau diubah!"); 
+        return;
+    }
+
+    Database db = new Database();
+    String nilaiUpdate = "nama_dosen = '" + nama + "', id_prodi = '" + idProdi + "'";
+    
+    if (db.updateDB("dosen", nilaiUpdate, "nidn = '" + nidn + "'")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Data dosen berhasil diubah!");
+        tampilData(); 
+        btnResetActionPerformed(evt);
+    } else {
+        javax.swing.JOptionPane.showMessageDialog(this, "Gagal mengubah data dosen!");
+    }
     }//GEN-LAST:event_btnUbahActionPerformed
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
         int baris = tblDosen.getSelectedRow();
-        if (baris == -1 || txtNidn.isEditable()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Pilih data di tabel yang mau dihapus!");
-            return;
-        }
+    if (baris == -1) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Pilih data di tabel yang mau dihapus!");
+        return;
+    }
 
-        String nidn = txtNidn.getText();
-        // Ambil ID User dari tabel (Kolom ke-4, index 3) untuk dihapus
-        String idUser = tblDosen.getValueAt(baris, 3).toString(); 
+    String nidn = txtNidn.getText();
+    
+    // PROTEKSI NULL: Cek dengan aman apakah kolom id_user ada isinya atau kosong
+    Object idObj = tblDosen.getValueAt(baris, 3);
+    String idUser = (idObj != null) ? idObj.toString() : ""; 
 
-        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Menghapus Dosen juga akan menghapus Akun Loginnya. Lanjutkan?", "Konfirmasi Hapus", javax.swing.JOptionPane.YES_NO_OPTION);
+    int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Menghapus Dosen juga akan menghapus Akun Loginnya. Lanjutkan?", "Konfirmasi Hapus", javax.swing.JOptionPane.YES_NO_OPTION);
+    
+    if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
+        Database db = new Database();
         
-        if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
-            Database db = new Database();
+        // Hapus data dari tabel dosen terlebih dahulu
+        if (db.deleteDB("dosen", "nidn = '" + nidn + "'")) {
             
-            // Hapus data dari tabel dosen terlebih dahulu (karena dia 'anak' dari tabel admin)
-            if (db.deleteDB("dosen", "nidn = '" + nidn + "'")) {
-                // Setelah aman, hapus akun utamanya di tabel admin
+            // Hanya hapus akun admin JIKA idUser tidak kosong
+            if (!idUser.isEmpty()) {
                 db.deleteDB("admin", "id_admin = '" + idUser + "'");
-                
-                javax.swing.JOptionPane.showMessageDialog(this, "Data Dosen dan Akun berhasil dihapus!");
-                tampilData();
-                btnResetActionPerformed(evt);
-            } else {
-                javax.swing.JOptionPane.showMessageDialog(this, "Gagal menghapus data!");
             }
+            
+            javax.swing.JOptionPane.showMessageDialog(this, "Data Dosen berhasil dihapus!");
+            tampilData();
+            btnResetActionPerformed(evt);
+        } else {
+            javax.swing.JOptionPane.showMessageDialog(this, "Gagal menghapus data!");
         }
+    }
     }//GEN-LAST:event_btnHapusActionPerformed
 
 

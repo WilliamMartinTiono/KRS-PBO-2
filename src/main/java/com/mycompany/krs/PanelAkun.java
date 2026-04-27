@@ -17,33 +17,37 @@ private void tampilData() {
         model.addColumn("ID Admin");
         model.addColumn("Username");
         model.addColumn("Password");
-        // Kita tambahkan kolom virtual untuk melihat status penggunaan akun
         model.addColumn("Status Penggunaan");
         tblAkun.setModel(model);
 
         try {
             Database db = new Database();
-            // Query kompleks: Mengecek apakah ID Admin ada di tabel mahasiswa atau dosen
-            String query = "SELECT a.*, " +
-                           "CASE WHEN m.id_user IS NOT NULL THEN 'Mahasiswa' " +
-                           "     WHEN d.id_user IS NOT NULL THEN 'Dosen' " +
-                           "     ELSE 'Tersedia/Admin Utama' END as status " +
-                           "FROM admin a " +
-                           "LEFT JOIN mahasiswa m ON a.id_admin = m.id_user " +
-                           "LEFT JOIN dosen d ON a.id_admin = d.id_user";
-            
-            // Karena fungsi readDB kamu sederhana, kita gunakan readDB biasa tapi logic status di Java saja
+            // Ambil semua data akun
             ResultSet rs = (ResultSet) db.readDB("*", "admin", "1=1");
             
             while (rs != null && rs.next()) {
                 String id = rs.getString("id_admin");
                 String user = rs.getString("username");
-                String pass = rs.getString("password");
                 
-                model.addRow(new Object[]{id, user, "********", "Cek di Database"});;
+                // --- LOGIKA KECERDASAN STATUS ---
+                String status = "Tersedia / Admin Utama"; 
+                Database dbCek = new Database();
+                
+                ResultSet rsMhs = (ResultSet) dbCek.readDB("nim", "mahasiswa", "id_user = '" + id + "'");
+                if (rsMhs != null && rsMhs.next()) {
+                    status = "Terpakai (Mahasiswa)";
+                } else {
+                    ResultSet rsDsn = (ResultSet) dbCek.readDB("nidn", "dosen", "id_user = '" + id + "'");
+                    if (rsDsn != null && rsDsn.next()) {
+                        status = "Terpakai (Dosen)";
+                    }
+                }
+                
+                // Masukkan data ke tabel, password disamarkan
+                model.addRow(new Object[]{id, user, "********", status});
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat akun: " + e.getMessage());
+            javax.swing.JOptionPane.showMessageDialog(this, "Gagal memuat akun: " + e.getMessage());
         }
     }
     /**
@@ -359,23 +363,30 @@ private void tampilData() {
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
-        String user = txtUsername.getText();
-        
-        if (txtUsername.isEditable()) {
+        if (tblAkun.getSelectedRow() == -1 || idAdminTerpilih.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih akun di tabel dulu!"); 
             return;
         }
 
+        // PROTEKSI KELAS KAKAP: Jangan izinkan hapus akun kalau sedang dipakai Mahasiswa/Dosen
+        String statusSaatIni = lblStatus.getText();
+        if (statusSaatIni.contains("Terpakai")) {
+            javax.swing.JOptionPane.showMessageDialog(this, "AKSES DITOLAK: Akun ini sedang diikat ke data Mahasiswa/Dosen!\nJika ingin menghapus, silakan hapus data Mahasiswa/Dosen yang bersangkutan di panelnya masing-masing.", "Peringatan Keamanan", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String user = txtUsername.getText();
         int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin ingin menghapus akun '" + user + "'?", "Konfirmasi Hapus", javax.swing.JOptionPane.YES_NO_OPTION);
         
         if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
             Database db = new Database();
-            if (db.deleteDB("admin", "username = '" + user + "'")) {
+            // Hapus berdasarkan ID agar presisi 100%
+            if (db.deleteDB("admin", "id_admin = '" + idAdminTerpilih + "'")) {
                 javax.swing.JOptionPane.showMessageDialog(this, "Akun berhasil dihapus!");
                 tampilData(); 
                 btnResetActionPerformed(evt);
             } else {
-                javax.swing.JOptionPane.showMessageDialog(this, "Gagal menghapus akun! Pastikan akun ini belum dipakai oleh Mahasiswa/Dosen.");
+                javax.swing.JOptionPane.showMessageDialog(this, "Gagal menghapus akun!");
             }
         }
     }//GEN-LAST:event_btnHapusActionPerformed

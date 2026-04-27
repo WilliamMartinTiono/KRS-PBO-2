@@ -253,7 +253,12 @@ private void loadComboBox() {
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
-// Klik 2x btnSimpan
+// PROTEKSI AWAL: Mencegah NullPointerException jika dropdown kosong
+    if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) {
+        JOptionPane.showMessageDialog(this, "Data Prodi atau Dosen Wali belum tersedia! Silakan isi Data Prodi dan Dosen terlebih dahulu.");
+        return;
+    }
+
     String nim = txtNim.getText();
     String nama = txtNamaMhs.getText();
     String alamat = txtAlamat.getText();
@@ -267,23 +272,19 @@ private void loadComboBox() {
 
     Database db = new Database();
     try {
-        // STEP 1: Validasi apakah NIM sudah terdaftar sebagai Username
         ResultSet rsCek = (ResultSet) db.readDB("username", "admin", "username = '" + nim + "'");
         if (rsCek != null && rsCek.next()) {
             JOptionPane.showMessageDialog(this, "NIM ini sudah memiliki akun!");
             return;
         }
 
-        // STEP 2: Buat Akun Otomatis di tabel admin (User & Pass = NIM)
         boolean akunOk = db.createDB("admin", "username, password", "'" + nim + "', '" + nim + "'");
         
         if (akunOk) {
-            // STEP 3: Ambil id_admin yang baru saja dibuat
             ResultSet rsId = (ResultSet) db.readDB("id_admin", "admin", "username = '" + nim + "'");
             if (rsId != null && rsId.next()) {
                 String idBaru = rsId.getString("id_admin");
 
-                // STEP 4: Simpan data ke tabel mahasiswa menggunakan ID tersebut
                 String kolomMhs = "nim, nama_mhs, alamat, id_prodi, id_dosen_wali, id_user";
                 String nilaiMhs = "'" + nim + "', '" + nama + "', '" + alamat + "', '" + idProdi + "', '" + idDosen + "', '" + idBaru + "'";
                 
@@ -291,6 +292,10 @@ private void loadComboBox() {
                     JOptionPane.showMessageDialog(this, "Mahasiswa & Akun Otomatis Berhasil Dibuat!\nUsername: " + nim + "\nPassword: " + nim);
                     tampilData();
                     btnResetActionPerformed(evt);
+                } else {
+                    // ROLLBACK: Cegah adanya akun sampah jika gagal tersimpan di tabel mahasiswa
+                    db.deleteDB("admin", "id_admin = '" + idBaru + "'");
+                    JOptionPane.showMessageDialog(this, "GAGAL menyimpan data ke tabel Mahasiswa!");
                 }
             }
         }
@@ -301,29 +306,39 @@ private void loadComboBox() {
 
     private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
         // TODO add your handling code here:
-       String nim = txtNim.getText();
-        String nama = txtNamaMhs.getText();
-        String alamat = txtAlamat.getText();
-        String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
-        String idDosen = cbDosenWali.getSelectedItem().toString().split(" - ")[0];
-        
-        // Validasi: Pastikan data sudah dipilih dari tabel
-        if (txtNim.isEditable()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih data mahasiswa di tabel dulu!"); 
-            return;
-        }
+      // PROTEKSI AWAL: Mencegah NullPointerException
+    if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) {
+        JOptionPane.showMessageDialog(this, "Data Prodi atau Dosen Wali belum tersedia!");
+        return;
+    }
 
-        Database db = new Database();
-        // Query update sesuai nama kolom di database kamu
-        String nilaiUpdate = "nama_mhs = '" + nama + "', alamat = '" + alamat + "', id_prodi = '" + idProdi + "', id_dosen_wali = '" + idDosen + "'";
-        
-        if (db.updateDB("mahasiswa", nilaiUpdate, "nim = '" + nim + "'")) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Data mahasiswa berhasil diperbarui!");
-            tampilData(); // Refresh tabel
-            btnResetActionPerformed(evt); // Bersihkan form
-        } else {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal memperbarui data!");
-        }
+    String nim = txtNim.getText();
+    String nama = txtNamaMhs.getText();
+    String alamat = txtAlamat.getText();
+    String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
+    String idDosen = cbDosenWali.getSelectedItem().toString().split(" - ")[0];
+    
+    // Ganti proteksi isEditable menggunakan getSelectedRow agar lebih pasti
+    if (tblMahasiswa.getSelectedRow() == -1) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih data mahasiswa di tabel dulu!"); 
+        return;
+    }
+
+    if (nama.isEmpty() || alamat.isEmpty()) {
+        JOptionPane.showMessageDialog(this, "Nama dan Alamat tidak boleh kosong!");
+        return;
+    }
+
+    Database db = new Database();
+    String nilaiUpdate = "nama_mhs = '" + nama + "', alamat = '" + alamat + "', id_prodi = '" + idProdi + "', id_dosen_wali = '" + idDosen + "'";
+    
+    if (db.updateDB("mahasiswa", nilaiUpdate, "nim = '" + nim + "'")) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Data mahasiswa berhasil diperbarui!");
+        tampilData(); 
+        btnResetActionPerformed(evt); 
+    } else {
+        javax.swing.JOptionPane.showMessageDialog(this, "Gagal memperbarui data!");
+    }
     }//GEN-LAST:event_btnUbahActionPerformed
 
     private void tblMahasiswaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblMahasiswaMouseClicked
@@ -360,28 +375,33 @@ private void loadComboBox() {
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
-       // Klik 2x btnHapus
-    int baris = tblMahasiswa.getSelectedRow();
+       int baris = tblMahasiswa.getSelectedRow();
     if (baris == -1) {
-        JOptionPane.showMessageDialog(this, "Pilih data di tabel!");
+        JOptionPane.showMessageDialog(this, "Pilih data di tabel yang ingin dihapus!");
         return;
     }
 
     String nim = txtNim.getText();
-    // Ambil ID User dari kolom tabel (misal kolom ke-5)
-    String idUser = tblMahasiswa.getValueAt(baris, 5).toString(); 
+    
+    // PROTEKSI NULL: Mengamankan id_user jika datanya kosong di database (seperti data Hendro)
+    Object idObj = tblMahasiswa.getValueAt(baris, 5);
+    String idUser = (idObj != null) ? idObj.toString() : ""; 
 
     int konfirmasi = JOptionPane.showConfirmDialog(this, "Menghapus Mahasiswa akan menghapus Akun Loginnya juga. Lanjutkan?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
     
     if (konfirmasi == JOptionPane.YES_OPTION) {
         Database db = new Database();
-        // Hapus data mahasiswa dulu
+        
         if (db.deleteDB("mahasiswa", "nim = '" + nim + "'")) {
-            // Baru hapus akunnya di tabel admin
-            db.deleteDB("admin", "id_admin = '" + idUser + "'");
-            JOptionPane.showMessageDialog(this, "Data Mahasiswa dan Akun berhasil dihapus!");
+            // Hanya hapus akun admin JIKA idUser tidak kosong
+            if (!idUser.isEmpty()) {
+                db.deleteDB("admin", "id_admin = '" + idUser + "'");
+            }
+            JOptionPane.showMessageDialog(this, "Data Mahasiswa berhasil dihapus!");
             tampilData();
             btnResetActionPerformed(evt);
+        } else {
+            JOptionPane.showMessageDialog(this, "Gagal menghapus data Mahasiswa!");
         }
     }
     }//GEN-LAST:event_btnHapusActionPerformed
