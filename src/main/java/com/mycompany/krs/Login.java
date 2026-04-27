@@ -18,7 +18,7 @@ public class Login extends javax.swing.JFrame {
      */
     public Login() {
         initComponents();
-        this.setLocationRelativeTo(null);
+        WindowUtil.setWindow80PercentCenter(this);
     }
 
     /**
