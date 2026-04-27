@@ -15,7 +15,7 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
     /**
      * Creates new form MenuUtamaAdmin
      */
-    public MenuUtamaAdmin() {
+    public MenuUtamaAdmin() {   
         initComponents();
         WindowUtil.setWindow80PercentCenter(this);
     }

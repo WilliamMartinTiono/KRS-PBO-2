@@ -229,7 +229,11 @@ private void tampilData() {
             JOptionPane.showMessageDialog(this, "Data berhasil disimpan!");
             tampilData(); 
             btnResetActionPerformed(evt); 
+            } else {
+            // 3. TAMBAHAN: Memberi tahu jika gagal karena error lain
+            JOptionPane.showMessageDialog(this, "Sistem gagal menyimpan data mata kuliah!", "Error", JOptionPane.ERROR_MESSAGE);
         }
+        
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void txtSksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSksActionPerformed

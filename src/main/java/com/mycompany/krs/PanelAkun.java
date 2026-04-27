@@ -402,7 +402,7 @@ private void tampilData() {
 
         // PROTEKSI KELAS KAKAP: Jangan izinkan hapus akun kalau sedang dipakai Mahasiswa/Dosen
         String statusSaatIni = lblStatus.getText();
-        if (statusSaatIni.contains("Terpakai")) {
+        if (statusSaatIni.contains("Dipakai")) {
             javax.swing.JOptionPane.showMessageDialog(this, "AKSES DITOLAK: Akun ini sedang diikat ke data Mahasiswa/Dosen!\nJika ingin menghapus, silakan hapus data Mahasiswa/Dosen yang bersangkutan di panelnya masing-masing.", "Peringatan Keamanan", javax.swing.JOptionPane.WARNING_MESSAGE);
             return;
         }
@@ -412,6 +412,8 @@ private void tampilData() {
         
         if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
             Database db = new Database();
+            
+
             // Hapus berdasarkan ID agar presisi 100%
             if (db.deleteDB("admin", "id_admin = '" + idAdminTerpilih + "'")) {
                 javax.swing.JOptionPane.showMessageDialog(this, "Akun berhasil dihapus!");
