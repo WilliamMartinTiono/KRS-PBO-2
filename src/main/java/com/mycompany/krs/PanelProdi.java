@@ -82,11 +82,12 @@ public class PanelProdi extends javax.swing.JPanel {
         txtIdProdi = new javax.swing.JTextField();
         txtNamaProdi = new javax.swing.JTextField();
         btnSimpan = new javax.swing.JButton();
-        btnUbah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
         btnReset = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblProdi = new javax.swing.JTable();
+        txtCari = new javax.swing.JTextField();
+        btnCari = new javax.swing.JButton();
 
         jLabel1.setText("Kelola Data Prodi");
 
@@ -110,13 +111,6 @@ public class PanelProdi extends javax.swing.JPanel {
         btnSimpan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSimpanActionPerformed(evt);
-            }
-        });
-
-        btnUbah.setText("Ubah");
-        btnUbah.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUbahActionPerformed(evt);
             }
         });
 
@@ -152,6 +146,19 @@ public class PanelProdi extends javax.swing.JPanel {
         });
         jScrollPane1.setViewportView(tblProdi);
 
+        txtCari.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtCariActionPerformed(evt);
+            }
+        });
+
+        btnCari.setText("Cari");
+        btnCari.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCariActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -159,34 +166,38 @@ public class PanelProdi extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addContainerGap()
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel4)
-                                        .addComponent(jLabel2))
-                                    .addGap(18, 18, 18)
-                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(txtNamaProdi)
-                                        .addComponent(txtIdProdi)))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                    .addGap(151, 151, 151)
-                                    .addComponent(jLabel1)))
-                            .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addContainerGap()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel4)
+                                    .addComponent(jLabel2))
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtNamaProdi)
+                                    .addComponent(txtIdProdi)))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addGap(151, 151, 151)
+                                .addComponent(jLabel1)))
+                        .addGap(0, 140, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(btnSimpan)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnUbah)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btnHapus)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnReset)))
-                        .addGap(0, 69, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE)))
+                                .addComponent(btnReset)
+                                .addGap(0, 147, Short.MAX_VALUE))
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 375, Short.MAX_VALUE))))
                 .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnCari, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -201,15 +212,18 @@ public class PanelProdi extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtNamaProdi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel4))
+                .addGap(41, 41, 41)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnCari))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 213, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 212, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSimpan)
-                    .addComponent(btnUbah)
                     .addComponent(btnHapus)
                     .addComponent(btnReset))
-                .addGap(87, 87, 87))
+                .addGap(24, 24, 24))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -248,7 +262,9 @@ String id = txtIdProdi.getText();
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
-        String id = txtIdProdi.getText();
+        if (btnSimpan.getText().equals("Simpan")) {
+    // ---> PASTE SELURUH KODINGAN "SIMPAN" LAMA KAMU DI SINI <---
+            String id = txtIdProdi.getText();
         String nama = txtNamaProdi.getText();
         
         if (id.isEmpty() || nama.isEmpty()) {
@@ -267,10 +283,39 @@ String id = txtIdProdi.getText();
         } else {
             JOptionPane.showMessageDialog(this, "Gagal menyimpan data!");
         }
+} else {
+    // ---> PASTE SELURUH KODINGAN "UBAH" LAMA KAMU DI SINI <---
+    String id = txtIdProdi.getText();
+        String nama = txtNamaProdi.getText();
+
+        // Jika kolom ID MASIH bisa diedit, berarti user belum klik tabel
+
+        if (tblProdi.getSelectedRow() == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Silakan klik data di tabel terlebih dahulu!");
+            return;
+        }
+
+        if (nama.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Nama Prodi tidak boleh kosong!");
+            return;
+        }
+
+        Database db = new Database();
+        boolean sukses = db.updateDB("prodi", "nama_prodi = '" + nama + "'", "id_prodi = '" + id + "'");
+
+        if (sukses) {
+            JOptionPane.showMessageDialog(this, "Data berhasil diubah!");
+            tampilData();
+            btnResetActionPerformed(evt);
+            // Memanggil reset agar kolom ID kembali terbuka
+        }
+}
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void tblProdiMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblProdiMouseClicked
         // TODO add your handling code here:
+        
+        btnSimpan.setText("Ubah Data");
         int baris = tblProdi.getSelectedRow();
         if (baris != -1) {
             // Mengambil data dari baris yang diklik dan memasukkannya ke textfield
@@ -280,39 +325,13 @@ String id = txtIdProdi.getText();
         }
     }//GEN-LAST:event_tblProdiMouseClicked
 
-    private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
-        // TODO add your handling code here:
-        String id = txtIdProdi.getText();
-        String nama = txtNamaProdi.getText();
-        
-        // Jika kolom ID MASIH bisa diedit, berarti user belum klik tabel
-        
-        if (tblProdi.getSelectedRow() == -1) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Silakan klik data di tabel terlebih dahulu!");
-            return;
-        }
-       
-
-        if (nama.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nama Prodi tidak boleh kosong!");
-            return;
-        }
-        
-
-
-        Database db = new Database();
-        boolean sukses = db.updateDB("prodi", "nama_prodi = '" + nama + "'", "id_prodi = '" + id + "'");
-        
-        if (sukses) {
-            JOptionPane.showMessageDialog(this, "Data berhasil diubah!");
-            tampilData();
-            btnResetActionPerformed(evt);
-            // Memanggil reset agar kolom ID kembali terbuka
-        }
-    }//GEN-LAST:event_btnUbahActionPerformed
-
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
         // TODO add your handling code here:
+        tampilData();
+        txtCari.setText("");
+        btnSimpan.setText("Simpan");
+        // Ganti tblMahasiswa dengan nama tabel di panel yang sedang kamu edit
+        tblProdi.clearSelection();
         txtIdProdi.setText("");
         txtNamaProdi.setText("");
         txtIdProdi.requestFocus();
@@ -321,17 +340,50 @@ String id = txtIdProdi.getText();
         
     }//GEN-LAST:event_btnResetActionPerformed
 
+    private void txtCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtCariActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtCariActionPerformed
+
+    private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
+        // TODO add your handling code here:
+        String kataKunci = txtCari.getText().trim();
+        javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblProdi.getModel();
+        model.setRowCount(0); // Kosongkan tabel dulu
+
+        try {
+            Database db = new Database();
+            // LOGIKA PENCARIAN: Mencari berdasarkan ID Prodi ATAU Nama Prodi
+            String kondisi = "id_prodi LIKE '%" + kataKunci + "%' OR nama_prodi LIKE '%" + kataKunci + "%'";
+            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "prodi", kondisi);
+            
+            while (rs != null && rs.next()) {
+                model.addRow(new Object[]{
+                    rs.getString("id_prodi"),
+                    rs.getString("nama_prodi")
+                });
+            }
+            
+            if (model.getRowCount() == 0) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data Prodi tidak ditemukan!");
+                tampilData(); // Panggil fungsi tampilData() untuk mereset tabel
+            }
+        } catch (Exception e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Error Pencarian: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnCariActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCari;
     private javax.swing.JButton btnHapus;
     private javax.swing.JButton btnReset;
     private javax.swing.JButton btnSimpan;
-    private javax.swing.JButton btnUbah;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tblProdi;
+    private javax.swing.JTextField txtCari;
     private javax.swing.JTextField txtIdProdi;
     private javax.swing.JTextField txtNamaProdi;
     // End of variables declaration//GEN-END:variables

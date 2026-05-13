@@ -87,7 +87,6 @@ private void loadComboBox() {
         jScrollPane1 = new javax.swing.JScrollPane();
         tblMahasiswa = new javax.swing.JTable();
         btnSimpan = new javax.swing.JButton();
-        btnUbah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
         btnReset = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
@@ -97,6 +96,12 @@ private void loadComboBox() {
         cbDosenWali = new javax.swing.JComboBox<>();
         jLabel8 = new javax.swing.JLabel();
         cbProdi = new javax.swing.JComboBox<>();
+        txtCari = new javax.swing.JTextField();
+        btnCari = new javax.swing.JButton();
+        txtFilterDosen = new javax.swing.JTextField();
+        jLabel5 = new javax.swing.JLabel();
+        jLabel9 = new javax.swing.JLabel();
+        txtFilterProdi = new javax.swing.JTextField();
 
         jLabel1.setText("Data Mahasiswa");
 
@@ -135,13 +140,6 @@ private void loadComboBox() {
             }
         });
 
-        btnUbah.setText("Ubah");
-        btnUbah.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUbahActionPerformed(evt);
-            }
-        });
-
         btnHapus.setText("Hapus");
         btnHapus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -171,6 +169,35 @@ private void loadComboBox() {
 
         cbProdi.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
+        btnCari.setText("Cari");
+        btnCari.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCariActionPerformed(evt);
+            }
+        });
+
+        txtFilterDosen.setToolTipText("");
+        txtFilterDosen.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtFilterDosenKeyReleased(evt);
+            }
+        });
+
+        jLabel5.setText("Filter :");
+
+        jLabel9.setText("Filter :");
+
+        txtFilterProdi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtFilterProdiActionPerformed(evt);
+            }
+        });
+        txtFilterProdi.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                txtFilterProdiKeyReleased(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -178,9 +205,18 @@ private void loadComboBox() {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(btnSimpan)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnHapus)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(btnReset))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnCari, javax.swing.GroupLayout.PREFERRED_SIZE, 55, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel3)
@@ -189,23 +225,26 @@ private void loadComboBox() {
                                     .addComponent(jLabel7)
                                     .addComponent(jLabel8))
                                 .addGap(32, 32, 32)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(txtNamaMhs, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(txtNim, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel1)
                                     .addComponent(txtAlamat, javax.swing.GroupLayout.PREFERRED_SIZE, 152, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(cbDosenWali, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel4)
-                                    .addComponent(cbProdi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnSimpan)
-                                .addGap(18, 18, 18)
-                                .addComponent(btnUbah)
-                                .addGap(18, 18, 18)
-                                .addComponent(btnHapus)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(btnReset)))
-                        .addGap(0, 0, Short.MAX_VALUE)))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(cbDosenWali, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(jLabel5)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(txtFilterDosen, javax.swing.GroupLayout.PREFERRED_SIZE, 74, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(cbProdi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(jLabel9)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(txtFilterProdi)))))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -228,17 +267,24 @@ private void loadComboBox() {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbDosenWali, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel7))
+                    .addComponent(jLabel7)
+                    .addComponent(txtFilterDosen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel5))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbProdi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8))
-                .addGap(34, 34, 34)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 228, Short.MAX_VALUE)
+                    .addComponent(jLabel8)
+                    .addComponent(jLabel9)
+                    .addComponent(txtFilterProdi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(35, 35, 35)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnCari))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 198, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSimpan)
-                    .addComponent(btnUbah)
                     .addComponent(btnHapus)
                     .addComponent(btnReset))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -254,6 +300,9 @@ private void loadComboBox() {
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
 // PROTEKSI AWAL: Mencegah NullPointerException jika dropdown kosong
+
+if (btnSimpan.getText().equals("Simpan")) {
+    // ---> PASTE SELURUH KODINGAN "SIMPAN" LAMA KAMU DI SINI <---
     if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) {
         JOptionPane.showMessageDialog(this, "Data Prodi atau Dosen Wali belum tersedia! Silakan isi Data Prodi dan Dosen terlebih dahulu.");
         return;
@@ -302,12 +351,8 @@ private void loadComboBox() {
     } catch (Exception e) {
         JOptionPane.showMessageDialog(this, "Error Sistem: " + e.getMessage());
     }
-    }//GEN-LAST:event_btnSimpanActionPerformed
-
-    private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
-        // TODO add your handling code here:
-      // PROTEKSI AWAL: Mencegah NullPointerException
-    if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) {
+} else {
+    // ---> PASTE SELURUH KODINGAN "UBAH" LAMA KAMU DI SINI <---if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) {
         JOptionPane.showMessageDialog(this, "Data Prodi atau Dosen Wali belum tersedia!");
         return;
     }
@@ -339,7 +384,9 @@ private void loadComboBox() {
     } else {
         javax.swing.JOptionPane.showMessageDialog(this, "Gagal memperbarui data!");
     }
-    }//GEN-LAST:event_btnUbahActionPerformed
+
+    
+    }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void tblMahasiswaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblMahasiswaMouseClicked
         // TODO add your handling code here:
@@ -371,6 +418,7 @@ private void loadComboBox() {
                 }
             }
         }
+        btnSimpan.setText("Ubah Data");
     }//GEN-LAST:event_tblMahasiswaMouseClicked
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
@@ -409,6 +457,16 @@ private void loadComboBox() {
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
         // TODO add your handling code here:
         // Mengosongkan kolom teks
+        txtFilterProdi.setText(""); 
+        txtFilterDosen.setText("");
+
+        // Panggil ulang semua isinya
+        loadComboBox();
+        tampilData();
+        btnSimpan.setText("Simpan");
+        // Ganti tblMahasiswa dengan nama tabel di panel yang sedang kamu edit
+        txtCari.setText("");
+        tblMahasiswa.clearSelection();
         txtNim.setText("");
         txtNamaMhs.setText("");
         txtAlamat.setText("");
@@ -426,24 +484,103 @@ private void loadComboBox() {
         // TODO add your handling code here:
     }//GEN-LAST:event_cbDosenWaliActionPerformed
 
+    private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
+        // TODO add your handling code here:
+        String kataKunci = txtCari.getText().trim();
+    javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblMahasiswa.getModel();
+    model.setRowCount(0); // Kosongkan tabel dulu
+
+    try {
+        Database db = new Database();
+        // LOGIKA PENCARIAN SQL: Mencari berdasarkan NIM ATAU Nama
+        String kondisi = "nim LIKE '%" + kataKunci + "%' OR nama_mhs LIKE '%" + kataKunci + "%'";
+        java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "mahasiswa", kondisi);
+
+        while (rs != null && rs.next()) {
+            model.addRow(new Object[]{
+                rs.getString("nim"),
+                rs.getString("nama_mhs"),
+                rs.getString("alamat"),
+                rs.getString("id_prodi"),
+                rs.getString("id_dosen_wali"),
+                rs.getString("id_user")
+            });
+        }
+
+        if (model.getRowCount() == 0) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Data tidak ditemukan!");
+            tampilData(); // Panggil fungsi tampilData() lama untuk mereset tabel
+        }
+    } catch (Exception e) {
+        javax.swing.JOptionPane.showMessageDialog(this, "Error Pencarian: " + e.getMessage());
+    }
+    }//GEN-LAST:event_btnCariActionPerformed
+
+    private void txtFilterDosenKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFilterDosenKeyReleased
+        // TODO add your handling code here:
+        String filter = txtFilterDosen.getText().trim();
+    try {
+        Database db = new Database();
+        // Ambil data dosen yang namanya mengandung huruf yang diketik
+        String kondisi = "nama_dosen LIKE '%" + filter + "%'";
+        java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn, nama_dosen", "dosen", kondisi);
+
+        cbDosenWali.removeAllItems(); // Bersihkan combobox
+
+        while (rsDosen != null && rsDosen.next()) {
+            // Masukkan kembali hasil saringan ke combobox
+            cbDosenWali.addItem(rsDosen.getString("nidn") + " - " + rsDosen.getString("nama_dosen"));
+        }
+    } catch (Exception e) {
+        System.out.println("Error Filter: " + e.getMessage());
+    }
+    }//GEN-LAST:event_txtFilterDosenKeyReleased
+
+    private void txtFilterProdiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtFilterProdiActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtFilterProdiActionPerformed
+
+    private void txtFilterProdiKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFilterProdiKeyReleased
+        // TODO add your handling code here:
+        String filter = txtFilterProdi.getText().trim();
+        try {
+            Database db = new Database();
+            String kondisi = "nama_prodi LIKE '%" + filter + "%'";
+            java.sql.ResultSet rsProdi = (java.sql.ResultSet) db.readDB("id_prodi, nama_prodi", "prodi", kondisi);
+            
+            cbProdi.removeAllItems(); 
+            
+            while (rsProdi != null && rsProdi.next()) {
+                cbProdi.addItem(rsProdi.getString("id_prodi") + " - " + rsProdi.getString("nama_prodi"));
+            }
+        } catch (Exception e) {
+            System.out.println("Error Filter Prodi: " + e.getMessage());
+        }
+    }//GEN-LAST:event_txtFilterProdiKeyReleased
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCari;
     private javax.swing.JButton btnHapus;
     private javax.swing.JButton btnReset;
     private javax.swing.JButton btnSimpan;
-    private javax.swing.JButton btnUbah;
     private javax.swing.JComboBox<String> cbDosenWali;
     private javax.swing.JComboBox<String> cbProdi;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tblMahasiswa;
     private javax.swing.JTextField txtAlamat;
+    private javax.swing.JTextField txtCari;
+    private javax.swing.JTextField txtFilterDosen;
+    private javax.swing.JTextField txtFilterProdi;
     private javax.swing.JTextField txtNamaMhs;
     private javax.swing.JTextField txtNim;
     // End of variables declaration//GEN-END:variables

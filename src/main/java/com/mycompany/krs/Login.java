@@ -11,8 +11,9 @@ import javax.swing.JOptionPane;
  */
 public class Login extends javax.swing.JFrame {
     
+    
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Login.class.getName());
-
+    public static String userLogin;
     /**
      * Creates new form Login
      */
@@ -183,23 +184,29 @@ public class Login extends javax.swing.JFrame {
                 // 3. Cek Role (Hak Akses)
                 java.sql.ResultSet rsMhs = (java.sql.ResultSet) db.readDB("nim", "mahasiswa", "id_user = '" + idUser + "'");
                 if (rsMhs != null && rsMhs.next()) {
+                    // --- MENGISI IDENTITAS MAHASISWA ---
+                    userLogin = rsMhs.getString("nim"); 
+                    
                     javax.swing.JOptionPane.showMessageDialog(this, "Login Berhasil!\nSelamat Datang Mahasiswa.");
                     MenuUtamaMahasiswa menuMhs = new MenuUtamaMahasiswa();
-
                     menuMhs.setVisible(true);
                     
                 } else {
                     java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn", "dosen", "id_user = '" + idUser + "'");
                     if (rsDosen != null && rsDosen.next()) {
+                        // --- MENGISI IDENTITAS DOSEN ---
+                        userLogin = rsDosen.getString("nidn");
+                        
                         javax.swing.JOptionPane.showMessageDialog(this, "Login Berhasil!\nSelamat Datang Dosen.");
                         MenuUtamaDosen menuDosen = new MenuUtamaDosen();
-
                         menuDosen.setVisible(true);
                         
                     } else {
+                        // --- MENGISI IDENTITAS ADMIN ---
+                        userLogin = username;
+                        
                         javax.swing.JOptionPane.showMessageDialog(this, "Login Berhasil!\nSelamat Datang Admin.");
                         MenuUtamaAdmin menuAdmin = new MenuUtamaAdmin();
-
                         menuAdmin.setVisible(true);
                     }
                 }

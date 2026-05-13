@@ -62,13 +62,14 @@ private void tampilData() {
         jScrollPane1 = new javax.swing.JScrollPane();
         tblMatkul = new javax.swing.JTable();
         btnSimpan = new javax.swing.JButton();
-        btnUbah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
         btnReset = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
         txtSks = new javax.swing.JTextField();
         txtSemester = new javax.swing.JTextField();
+        txtCari = new javax.swing.JTextField();
+        btnCari = new javax.swing.JButton();
 
         jLabel1.setText("Kelola Data Mata Kuliah");
 
@@ -108,13 +109,6 @@ private void tampilData() {
             }
         });
 
-        btnUbah.setText("Ubah");
-        btnUbah.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUbahActionPerformed(evt);
-            }
-        });
-
         btnHapus.setText("Hapus");
         btnHapus.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -139,6 +133,13 @@ private void tampilData() {
             }
         });
 
+        btnCari.setText("Cari");
+        btnCari.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCariActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -148,28 +149,36 @@ private void tampilData() {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel5))
-                        .addGap(27, 27, 27)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addComponent(txtKodeMk, javax.swing.GroupLayout.DEFAULT_SIZE, 182, Short.MAX_VALUE)
-                                .addComponent(txtNamaMk)
-                                .addComponent(txtSks)
-                                .addComponent(txtSemester))))
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel2)
+                                            .addComponent(jLabel3)
+                                            .addComponent(jLabel4)
+                                            .addComponent(jLabel5))
+                                        .addGap(27, 27, 27)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel1)
+                                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                                .addComponent(txtKodeMk, javax.swing.GroupLayout.DEFAULT_SIZE, 182, Short.MAX_VALUE)
+                                                .addComponent(txtNamaMk)
+                                                .addComponent(txtSks)
+                                                .addComponent(txtSemester))))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(btnSimpan)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(btnHapus)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                        .addComponent(btnReset)))
+                                .addGap(0, 29, Short.MAX_VALUE)))
+                        .addGap(116, 116, 116))
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(btnSimpan)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnUbah)
-                        .addGap(18, 18, 18)
-                        .addComponent(btnHapus)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnReset)))
-                .addGap(116, 116, 116))
+                        .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnCari)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -192,15 +201,18 @@ private void tampilData() {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtSemester, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel5))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnCari))
+                .addGap(2, 2, 2)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 202, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSimpan)
-                    .addComponent(btnUbah)
                     .addComponent(btnHapus)
                     .addComponent(btnReset))
-                .addGap(128, 128, 128))
+                .addGap(97, 97, 97))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -210,7 +222,10 @@ private void tampilData() {
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
-        String kode = txtKodeMk.getText();
+        
+        if (btnSimpan.getText().equals("Simpan")) {
+    // ---> PASTE SELURUH KODINGAN "SIMPAN" LAMA KAMU DI SINI <---
+    String kode = txtKodeMk.getText();
         String nama = txtNamaMk.getText();
         String sks = txtSks.getText();
         String semester = txtSemester.getText();
@@ -233,30 +248,9 @@ private void tampilData() {
             // 3. TAMBAHAN: Memberi tahu jika gagal karena error lain
             JOptionPane.showMessageDialog(this, "Sistem gagal menyimpan data mata kuliah!", "Error", JOptionPane.ERROR_MESSAGE);
         }
-        
-    }//GEN-LAST:event_btnSimpanActionPerformed
-
-    private void txtSksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSksActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtSksActionPerformed
-
-    private void tblMatkulMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblMatkulMouseClicked
-        // TODO add your handling code here:
-        int baris = tblMatkul.getSelectedRow();
-        if (baris != -1) {
-            txtKodeMk.setText(tblMatkul.getValueAt(baris, 0).toString());
-            txtNamaMk.setText(tblMatkul.getValueAt(baris, 1).toString());
-            txtSks.setText(tblMatkul.getValueAt(baris, 2).toString());
-            txtSemester.setText(tblMatkul.getValueAt(baris, 3).toString());
-            
-            // Kunci Kode MK agar tidak diubah
-            txtKodeMk.setEditable(false); 
-        }
-    }//GEN-LAST:event_tblMatkulMouseClicked
-
-    private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
-        // TODO add your handling code here:
-        String kode = txtKodeMk.getText();
+} else {
+    // ---> PASTE SELURUH KODINGAN "UBAH" LAMA KAMU DI SINI <---
+    String kode = txtKodeMk.getText();
         String nama = txtNamaMk.getText();
         String sks = txtSks.getText();
         String semester = txtSemester.getText();
@@ -275,7 +269,29 @@ private void tampilData() {
             tampilData();
             btnResetActionPerformed(evt);
         }
-    }//GEN-LAST:event_btnUbahActionPerformed
+}
+        
+        
+    }//GEN-LAST:event_btnSimpanActionPerformed
+
+    private void txtSksActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSksActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtSksActionPerformed
+
+    private void tblMatkulMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblMatkulMouseClicked
+        // TODO add your handling code here:
+        int baris = tblMatkul.getSelectedRow();
+        if (baris != -1) {
+            txtKodeMk.setText(tblMatkul.getValueAt(baris, 0).toString());
+            txtNamaMk.setText(tblMatkul.getValueAt(baris, 1).toString());
+            txtSks.setText(tblMatkul.getValueAt(baris, 2).toString());
+            txtSemester.setText(tblMatkul.getValueAt(baris, 3).toString());
+            
+            // Kunci Kode MK agar tidak diubah
+            txtKodeMk.setEditable(false); 
+            btnSimpan.setText("Ubah Data");
+        }
+    }//GEN-LAST:event_tblMatkulMouseClicked
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
@@ -302,6 +318,8 @@ private void tampilData() {
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
         // TODO add your handling code here:
+        tampilData();
+        txtCari.setText("");
         txtKodeMk.setText("");
         txtNamaMk.setText("");
         txtSks.setText("");
@@ -309,14 +327,47 @@ private void tampilData() {
         
         txtKodeMk.setEditable(true); // Buka kembali kuncinya untuk input data baru
         txtKodeMk.requestFocus();
+        btnSimpan.setText("Simpan");
+        // Ganti tblMahasiswa dengan nama tabel di panel yang sedang kamu edit
+        tblMatkul.clearSelection();
     }//GEN-LAST:event_btnResetActionPerformed
+
+    private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
+        // TODO add your handling code here:
+        String kataKunci = txtCari.getText().trim();
+        javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblMatkul.getModel();
+        model.setRowCount(0); // Kosongkan tabel dulu
+
+        try {
+            Database db = new Database();
+            // LOGIKA PENCARIAN: Mencari berdasarkan Kode MK ATAU Nama Matkul
+            String kondisi = "kode_mk LIKE '%" + kataKunci + "%' OR nama_mk LIKE '%" + kataKunci + "%'";
+            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "mata_kuliah", kondisi);
+            
+            while (rs != null && rs.next()) {
+                model.addRow(new Object[]{
+                    rs.getString("kode_mk"),
+                    rs.getString("nama_mk"),
+                    rs.getString("sks"),
+                    rs.getString("semester")
+                });
+            }
+            
+            if (model.getRowCount() == 0) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data Mata Kuliah tidak ditemukan!");
+                tampilData(); // Panggil fungsi tampilData() untuk mereset tabel
+            }
+        } catch (Exception e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Error Pencarian: " + e.getMessage());
+        }
+    }//GEN-LAST:event_btnCariActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCari;
     private javax.swing.JButton btnHapus;
     private javax.swing.JButton btnReset;
     private javax.swing.JButton btnSimpan;
-    private javax.swing.JButton btnUbah;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -324,6 +375,7 @@ private void tampilData() {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tblMatkul;
+    private javax.swing.JTextField txtCari;
     private javax.swing.JTextField txtKodeMk;
     private javax.swing.JTextField txtNamaMk;
     private javax.swing.JTextField txtSemester;

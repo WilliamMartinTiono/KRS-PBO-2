@@ -74,7 +74,6 @@ private void tampilData() {
         jScrollPane1 = new javax.swing.JScrollPane();
         tblAkun = new javax.swing.JTable();
         btnSimpan = new javax.swing.JButton();
-        btnUbah = new javax.swing.JButton();
         btnHapus = new javax.swing.JButton();
         btnReset = new javax.swing.JButton();
         cbShowPassword = new javax.swing.JCheckBox();
@@ -83,7 +82,7 @@ private void tampilData() {
         btnCari = new javax.swing.JButton();
         txtPassword = new javax.swing.JPasswordField();
 
-        jLabel1.setText("Kelola Akun");
+        jLabel1.setText("Tabel Akun");
 
         jLabel2.setText("UserName");
 
@@ -114,13 +113,6 @@ private void tampilData() {
         btnSimpan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnSimpanActionPerformed(evt);
-            }
-        });
-
-        btnUbah.setText("Ubah");
-        btnUbah.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnUbahActionPerformed(evt);
             }
         });
 
@@ -159,29 +151,8 @@ private void tampilData() {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(176, 176, 176)
-                        .addComponent(jLabel1))
-                    .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(btnSimpan)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnUbah)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(btnHapus)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnReset))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(19, 19, 19)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel3))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(cbShowPassword)
-                            .addComponent(btnCari)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(20, 20, 20)
                         .addComponent(jLabel2)
@@ -191,7 +162,29 @@ private void tampilData() {
                                 .addComponent(txtUsername, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lblStatus, javax.swing.GroupLayout.DEFAULT_SIZE, 117, Short.MAX_VALUE))
-                            .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                            .addComponent(txtPassword, javax.swing.GroupLayout.PREFERRED_SIZE, 190, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(176, 176, 176)
+                                .addComponent(jLabel1))
+                            .addGroup(layout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(btnSimpan)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnHapus)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnReset))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(19, 19, 19)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, 258, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(jLabel3))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(cbShowPassword)
+                                    .addComponent(btnCari))))
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addGap(47, 47, 47))
         );
         layout.setVerticalGroup(
@@ -218,7 +211,6 @@ private void tampilData() {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSimpan)
-                    .addComponent(btnUbah)
                     .addComponent(btnHapus)
                     .addComponent(btnReset))
                 .addContainerGap())
@@ -236,7 +228,9 @@ private void tampilData() {
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
-        String user = txtUsername.getText();
+        if (btnSimpan.getText().equals("Simpan")) {
+    // ---> PASTE SELURUH KODINGAN "SIMPAN" LAMA KAMU DI SINI <---
+    String user = txtUsername.getText();
     String pass = new String(txtPassword.getPassword());
 
     if (user.isEmpty() || pass.isEmpty()) {
@@ -259,6 +253,32 @@ private void tampilData() {
         tampilData();
         btnResetActionPerformed(evt);
     }
+} else {
+    // ---> PASTE SELURUH KODINGAN "UBAH" LAMA KAMU DI SINI <---
+    String user = txtUsername.getText();
+        String pass = new String(txtPassword.getPassword());
+        
+        if (txtUsername.isEditable() || idAdminTerpilih.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih akun di tabel dulu!"); 
+            return;
+        }
+
+        if (pass.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Ketik password baru jika ingin mereset password akun ini!"); 
+            return;
+        }
+
+        Database db = new Database();
+        // Sekarang kita mengubah password berdasarkan ID ADMIN, pasti langsung tembus!
+        if (db.updateDB("admin", "password = '" + pass + "'", "id_admin = '" + idAdminTerpilih + "'")) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Password untuk akun " + user + " berhasil diubah!");
+            tampilData(); 
+            btnResetActionPerformed(evt);
+        } else {
+            javax.swing.JOptionPane.showMessageDialog(this, "Gagal mengubah password!");
+        }
+}
+        
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
@@ -319,6 +339,11 @@ private void tampilData() {
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
         // TODO add your handling code here:
+        tampilData();
+        txtCari.setText("");
+        btnSimpan.setText("Simpan");
+        // Ganti tblMahasiswa dengan nama tabel di panel yang sedang kamu edit
+        tblAkun.clearSelection();
         txtUsername.setText("");
         txtPassword.setText("");
         lblStatus.setText("Status: -");
@@ -365,33 +390,8 @@ private void tampilData() {
                 lblStatus.setText("Status: Gagal mengecek data");
             }
         }
+        btnSimpan.setText("Ubah Data");
     }//GEN-LAST:event_tblAkunMouseClicked
-
-    private void btnUbahActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUbahActionPerformed
-        // TODO add your handling code here:
-        String user = txtUsername.getText();
-        String pass = new String(txtPassword.getPassword());
-        
-        if (txtUsername.isEditable() || idAdminTerpilih.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih akun di tabel dulu!"); 
-            return;
-        }
-
-        if (pass.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Ketik password baru jika ingin mereset password akun ini!"); 
-            return;
-        }
-
-        Database db = new Database();
-        // Sekarang kita mengubah password berdasarkan ID ADMIN, pasti langsung tembus!
-        if (db.updateDB("admin", "password = '" + pass + "'", "id_admin = '" + idAdminTerpilih + "'")) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Password untuk akun " + user + " berhasil diubah!");
-            tampilData(); 
-            btnResetActionPerformed(evt);
-        } else {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal mengubah password!");
-        }
-    }//GEN-LAST:event_btnUbahActionPerformed
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
@@ -435,7 +435,6 @@ private void tampilData() {
     private javax.swing.JButton btnHapus;
     private javax.swing.JButton btnReset;
     private javax.swing.JButton btnSimpan;
-    private javax.swing.JButton btnUbah;
     private javax.swing.JCheckBox cbShowPassword;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
