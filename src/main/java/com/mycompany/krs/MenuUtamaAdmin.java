@@ -37,6 +37,7 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
         btnLogout = new javax.swing.JButton();
         btnAkun = new javax.swing.JButton();
         btnKelas = new javax.swing.JButton();
+        btnPeriode = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         panelKonten = new javax.swing.JPanel();
@@ -92,6 +93,13 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
             }
         });
 
+        btnPeriode.setText("Periode");
+        btnPeriode.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnPeriodeActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -102,6 +110,7 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
                     .addComponent(btnDosen, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnMhs, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addComponent(btnAkun, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnKelas, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(btnMatkul, javax.swing.GroupLayout.PREFERRED_SIZE, 126, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -109,7 +118,7 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
                                 .addContainerGap()
                                 .addComponent(btnLogout)))
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(btnKelas, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnPeriode, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -127,14 +136,16 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
                 .addComponent(btnAkun)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnKelas)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 341, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnPeriode)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 312, Short.MAX_VALUE)
                 .addComponent(btnLogout)
                 .addContainerGap())
         );
 
         jLabel1.setText("Dashboard Admin - Sistem Akademik");
 
-        jLabel2.setText("KRS");
+        jLabel2.setText("Siakad");
 
         panelKonten.setLayout(new java.awt.BorderLayout());
 
@@ -145,11 +156,11 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(52, 52, 52)
+                        .addGap(46, 46, 46)
                         .addComponent(jLabel2)
-                        .addGap(146, 146, 146)
+                        .addGap(152, 152, 152)
                         .addComponent(jLabel1)
-                        .addGap(0, 229, Short.MAX_VALUE))
+                        .addGap(0, 215, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -160,17 +171,15 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(jLabel2))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addContainerGap())
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(panelKonten, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(panelKonten, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addGap(12, 12, 12)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -271,6 +280,23 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
         panelKonten.repaint();
     }//GEN-LAST:event_btnKelasActionPerformed
 
+    private void btnPeriodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPeriodeActionPerformed
+        // TODO add your handling code here:
+        // 1. Kosongkan area tengah (Panel Utama) tempat panel biasa muncul
+    panelKonten.removeAll(); 
+
+    // 2. Panggil PanelPeriode yang baru saja kamu buat
+    PanelPeriode pPeriode = new PanelPeriode();
+
+    // 3. Atur ukurannya agar pas dengan panel konten
+    pPeriode.setSize(panelKonten.getSize());
+
+    // 4. Masukkan ke panel konten dan refresh layarnya
+    panelKonten.add(pPeriode);
+    panelKonten.repaint();
+    panelKonten.revalidate();
+    }//GEN-LAST:event_btnPeriodeActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -303,6 +329,7 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
     private javax.swing.JButton btnLogout;
     private javax.swing.JButton btnMatkul;
     private javax.swing.JButton btnMhs;
+    private javax.swing.JButton btnPeriode;
     private javax.swing.JButton btnProdi;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

@@ -73,6 +73,27 @@ public class PanelKelas extends javax.swing.JPanel {
             javax.swing.JOptionPane.showMessageDialog(this, "Gagal memuat data kelas: " + e.getMessage());
         }
     }
+    // FUNGSI KHUSUS UNTUK MEMBACA IRISAN WAKTU
+    private boolean cekBentrokWaktu(String jamBaru, String jamAda) {
+        try {
+            // Bersihkan spasi dan ubah titik jadi pemisah jam:menit
+            String jB = jamBaru.replace(" ", "").replace(".", ":");
+            String jA = jamAda.replace(" ", "").replace(".", ":");
+            
+            // Konversi ke total menit agar gampang dihitung (misal 08:30 = 8*60 + 30 = 510)
+            int start1 = (Integer.parseInt(jB.split("-")[0].split(":")[0]) * 60) + Integer.parseInt(jB.split("-")[0].split(":")[1]);
+            int end1 = (Integer.parseInt(jB.split("-")[1].split(":")[0]) * 60) + Integer.parseInt(jB.split("-")[1].split(":")[1]);
+            
+            int start2 = (Integer.parseInt(jA.split("-")[0].split(":")[0]) * 60) + Integer.parseInt(jA.split("-")[0].split(":")[1]);
+            int end2 = (Integer.parseInt(jA.split("-")[1].split(":")[0]) * 60) + Integer.parseInt(jA.split("-")[1].split(":")[1]);
+
+            // Rumus irisan waktu: Mulai_1 lebih awal dari Selesai_2 DAN Mulai_2 lebih awal dari Selesai_1
+            return start1 < end2 && start2 < end1;
+        } catch (Exception e) {
+            // Kalau admin ketiknya ngawur (ga pakai strip "-"), balik ke pengecekan teks biasa
+            return jamBaru.equalsIgnoreCase(jamAda);
+        }
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -321,7 +342,13 @@ if (cbMatkul.getSelectedItem() == null || cbDosen.getSelectedItem() == null) {
             javax.swing.JOptionPane.showMessageDialog(this, "Semua isian jadwal (Ruang, Jam, Kuota) harus diisi!");
             return;
         }
-
+        // ==========================================================
+        // SATPAM 0: CEK FORMAT JAM (ANTI-TYPO)
+        if (!jam.matches("^\\d{2}[:.]\\d{2}\\s*-\\s*\\d{2}[:.]\\d{2}$")) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Format Jam salah atau Typo!\n\nGunakan format standar 24 Jam.\nContoh yang benar: 08:00 - 10:30\natau 08.00-10.30");
+            return;
+        }
+        // ==========================================================
         int kuota;
         try {
             kuota = Integer.parseInt(kuotaStr);
@@ -338,20 +365,24 @@ if (cbMatkul.getSelectedItem() == null || cbDosen.getSelectedItem() == null) {
                 kecualiID = " AND id_kelas != '" + idKelasTerpilih + "'";
             }
 
-            // SATPAM 1: CEK BENTROK RUANG
-            String cekRuang = "ruang = '" + ruang + "' AND hari = '" + hari + "' AND jam = '" + jam + "'" + kecualiID;
-            java.sql.ResultSet rsRuang = (java.sql.ResultSet) db.readDB("id_kelas", "kelas", cekRuang);
-            if (rsRuang != null && rsRuang.next()) {
-                javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Ruang " + ruang + " sudah dipakai pada jadwal tersebut.");
-                return;
+            // SATPAM 1: CEK BENTROK RUANG (Update Logika Waktu)
+            String cekRuang = "ruang = '" + ruang + "' AND hari = '" + hari + "'" + kecualiID;
+            java.sql.ResultSet rsRuang = (java.sql.ResultSet) db.readDB("jam", "kelas", cekRuang);
+            while (rsRuang != null && rsRuang.next()) {
+                if (cekBentrokWaktu(jam, rsRuang.getString("jam"))) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Ruang " + ruang + " sedang dipakai kelas lain pada jam " + rsRuang.getString("jam"));
+                    return;
+                }
             }
 
-            // SATPAM 2: CEK BENTROK DOSEN
-            String cekDosen = "nidn = '" + nidn + "' AND hari = '" + hari + "' AND jam = '" + jam + "'" + kecualiID;
-            java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("id_kelas", "kelas", cekDosen);
-            if (rsDosen != null && rsDosen.next()) {
-                javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Dosen tersebut sudah mengajar kelas lain pada jadwal tersebut.");
-                return;
+            // SATPAM 2: CEK BENTROK DOSEN (Update Logika Waktu)
+            String cekDosen = "nidn = '" + nidn + "' AND hari = '" + hari + "'" + kecualiID;
+            java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("jam", "kelas", cekDosen);
+            while (rsDosen != null && rsDosen.next()) {
+                if (cekBentrokWaktu(jam, rsDosen.getString("jam"))) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Dosen ini sudah mengajar kelas lain pada jam " + rsDosen.getString("jam"));
+                    return;
+                }
             }
 
             // EKSEKUSI DATABASE
