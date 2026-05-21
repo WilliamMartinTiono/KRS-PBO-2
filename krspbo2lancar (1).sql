@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 27, 2026 at 08:51 AM
+-- Generation Time: May 21, 2026 at 08:59 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,7 +38,12 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`id_admin`, `username`, `password`) VALUES
-(1, 'admin1', 'a');
+(1, 'admin1', 'a'),
+(8, '2600002', '2600002'),
+(13, '24110001', '24110001'),
+(14, '2600003', '2600003'),
+(15, '24110002', '24110002'),
+(16, '24110028', '24110028');
 
 -- --------------------------------------------------------
 
@@ -58,7 +63,8 @@ CREATE TABLE `dosen` (
 --
 
 INSERT INTO `dosen` (`nidn`, `nama_dosen`, `id_prodi`, `id_user`) VALUES
-('2600001', 'Dr. Hendro', 1, NULL);
+('2600002', 'Dr. Presie', 3, 8),
+('2600003', 'Hendro', 1, 14);
 
 -- --------------------------------------------------------
 
@@ -76,6 +82,14 @@ CREATE TABLE `kelas` (
   `nidn` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `kelas`
+--
+
+INSERT INTO `kelas` (`id_kelas`, `hari`, `jam`, `ruang`, `kuota`, `kode_mk`, `nidn`) VALUES
+(4, 'Senin', '08:00 - 10:00', '1.01', 39, 'MK1001', '2600002'),
+(5, 'Senin', '09.00 - 10.00', '1.02', 39, 'MK1002', '2600003');
+
 -- --------------------------------------------------------
 
 --
@@ -86,6 +100,14 @@ CREATE TABLE `krs_detail` (
   `id_krs` int(11) NOT NULL,
   `id_kelas` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `krs_detail`
+--
+
+INSERT INTO `krs_detail` (`id_krs`, `id_kelas`) VALUES
+(1, 4),
+(1, 5);
 
 -- --------------------------------------------------------
 
@@ -102,6 +124,13 @@ CREATE TABLE `krs_header` (
   `nim` varchar(20) DEFAULT NULL,
   `id_periode` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `krs_header`
+--
+
+INSERT INTO `krs_header` (`id_krs`, `total_sks`, `tgl_pengajuan`, `status_validasi`, `catatan_dosen`, `nim`, `id_periode`) VALUES
+(1, 6, '2026-05-19', 'Menunggu', NULL, '24110028', 2);
 
 -- --------------------------------------------------------
 
@@ -123,7 +152,9 @@ CREATE TABLE `mahasiswa` (
 --
 
 INSERT INTO `mahasiswa` (`nim`, `nama_mhs`, `alamat`, `id_prodi`, `id_dosen_wali`, `id_user`) VALUES
-('2601', 'Hendro', 'Sedam', 1, '2600001', NULL);
+('24110001', 'Christ', 'purnama', 3, '2600002', 13),
+('24110002', 'Susi', 'Serdam', 2, '2600003', 15),
+('24110028', 'William Martin Tiono', 'Jl Budi Utomo', 3, '2600003', 16);
 
 -- --------------------------------------------------------
 
@@ -143,7 +174,10 @@ CREATE TABLE `mata_kuliah` (
 --
 
 INSERT INTO `mata_kuliah` (`kode_mk`, `nama_mk`, `sks`, `semester`) VALUES
-('MK_1001', 'PBO II', 3, 4);
+('MK1001', 'PBO II', 3, 4),
+('MK1002', 'DC', 3, 4),
+('MK1003', 'STATIS', 3, 4),
+('MK1004', 'MAKANas', 4, 4);
 
 -- --------------------------------------------------------
 
@@ -196,6 +230,13 @@ CREATE TABLE `periode` (
   `status_krs` varchar(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `periode`
+--
+
+INSERT INTO `periode` (`id_periode`, `tahun_ajaran`, `semester`, `status_krs`) VALUES
+(2, '2024/2025', 'Ganjil', 'Buka');
+
 -- --------------------------------------------------------
 
 --
@@ -213,7 +254,9 @@ CREATE TABLE `prodi` (
 
 INSERT INTO `prodi` (`id_prodi`, `nama_prodi`) VALUES
 (1, 'BD'),
-(2, 'KWU');
+(2, 'KWU'),
+(3, 'STI'),
+(4, 'ertre');
 
 --
 -- Indexes for dumped tables
@@ -315,7 +358,25 @@ ALTER TABLE `prodi`
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- AUTO_INCREMENT for table `kelas`
+--
+ALTER TABLE `kelas`
+  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `krs_header`
+--
+ALTER TABLE `krs_header`
+  MODIFY `id_krs` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `periode`
+--
+ALTER TABLE `periode`
+  MODIFY `id_periode` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- Constraints for dumped tables
