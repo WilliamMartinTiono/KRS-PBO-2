@@ -40,18 +40,15 @@ private String idPeriodeAktif = "";
     }
 
     private void loadDataMahasiswa() {
-        String nim = Login.userLogin; 
-        if(nim == null) nim = "24110001"; // Fallback jika tidak lewat login (untuk testing)
+        String nim = Login.getUserLogin(); 
         lblNim.setText(nim);
         
         try {
             Database db = new Database();
-            // Ambil Nama
-            java.sql.ResultSet rsMhs = (java.sql.ResultSet) db.readDB("nama_mhs", "mahasiswa", "nim = '" + nim + "'");
+            java.sql.ResultSet rsMhs = db.readDBSafe("SELECT nama_mhs FROM mahasiswa WHERE nim = ?", nim);
             if(rsMhs != null && rsMhs.next()) lblNama.setText(rsMhs.getString("nama_mhs"));
             
-            // Ambil Periode Aktif
-            java.sql.ResultSet rsPer = (java.sql.ResultSet) db.readDB("id_periode, semester, tahun_ajaran", "periode", "status_krs = 'Buka'");
+            java.sql.ResultSet rsPer = db.readDBSafe("SELECT id_periode, semester, tahun_ajaran FROM periode WHERE status_krs = 'Buka'");
             if(rsPer != null && rsPer.next()) {
                 idPeriodeAktif = rsPer.getString("id_periode");
                 lblPeriode.setText(rsPer.getString("semester") + " " + rsPer.getString("tahun_ajaran"));
@@ -59,29 +56,33 @@ private String idPeriodeAktif = "";
                 lblPeriode.setText("TIDAK ADA PERIODE BUKA");
                 btnAjukan.setEnabled(false); btnAmbil.setEnabled(false);
             }
-        } catch(Exception e){}
+        } catch(Exception e) {
+            System.err.println("Error muat data mahasiswa: " + e.getMessage());
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "Gagal memuat data akademik!\nKoneksi database terputus.", 
+                "Error Sistem", 
+                javax.swing.JOptionPane.ERROR_MESSAGE);
+                
+            // Kunci tombol keamanan agar tidak terjadi transaksi gaib
+            btnAjukan.setEnabled(false); 
+            btnAmbil.setEnabled(false);
+        }
     }
 
     private void loadKelasTersedia() {
         modelTersedia.setRowCount(0);
         try {
             Database db = new Database();
-            // Query JOIN brutal untuk menyatukan Kelas, Matkul, dan Dosen
-            String kolom = "k.id_kelas, mk.kode_mk, mk.nama_mk, d.nama_dosen, k.hari, k.jam, k.ruang, mk.sks, k.kuota";
-            String tabel = "kelas k JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk JOIN dosen d ON k.nidn = d.nidn";
-            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB(kolom, tabel, "k.kuota > 0");
+            String sql = "SELECT k.id_kelas, mk.kode_mk, mk.nama_mk, d.nama_dosen, k.hari, k.jam, k.ruang, mk.sks, k.kuota " +
+                         "FROM kelas k JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk JOIN dosen d ON k.nidn = d.nidn WHERE k.kuota > 0";
+            java.sql.ResultSet rs = db.readDBSafe(sql);
             
             while(rs != null && rs.next()) {
                 String idKelas = rs.getString("id_kelas");
-                
-                // Mencegah kelas yang sudah ada di Keranjang Kanan muncul lagi di Kiri
                 boolean sudahDiambil = false;
                 for(int i = 0; i < modelKrs.getRowCount(); i++){
-                    if(modelKrs.getValueAt(i, 0).toString().equals(idKelas)){
-                        sudahDiambil = true; break;
-                    }
+                    if(modelKrs.getValueAt(i, 0).toString().equals(idKelas)){ sudahDiambil = true; break; }
                 }
-                
                 if(!sudahDiambil) {
                     modelTersedia.addRow(new Object[]{
                         idKelas, rs.getString("kode_mk"), rs.getString("nama_mk"), rs.getString("nama_dosen"),
@@ -89,7 +90,13 @@ private String idPeriodeAktif = "";
                     });
                 }
             }
-        } catch(Exception e){}
+        } catch(Exception e) {
+            System.err.println("Error muat jadwal kelas: " + e.getMessage());
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "Gagal memuat daftar kelas tersedia!\nKoneksi database terputus.", 
+                "Error Sistem", 
+                javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private void hitungSKS() {
@@ -99,12 +106,50 @@ private String idPeriodeAktif = "";
         }
         lblTotalSks.setText(String.valueOf(totalSks));
     }
+    
+    private boolean cekBentrokWaktu(String jamBaru, String jamAda) {
+        try {
+            String jB = jamBaru.replace(" ", "").replace(".", ":");
+            String jA = jamAda.replace(" ", "").replace(".", ":");
+            
+            int start1 = (Integer.parseInt(jB.split("-")[0].split(":")[0]) * 60) + Integer.parseInt(jB.split("-")[0].split(":")[1]);
+            int end1 = (Integer.parseInt(jB.split("-")[1].split(":")[0]) * 60) + Integer.parseInt(jB.split("-")[1].split(":")[1]);
+            
+            int start2 = (Integer.parseInt(jA.split("-")[0].split(":")[0]) * 60) + Integer.parseInt(jA.split("-")[0].split(":")[1]);
+            int end2 = (Integer.parseInt(jA.split("-")[1].split(":")[0]) * 60) + Integer.parseInt(jA.split("-")[1].split(":")[1]);
+
+            return start1 < end2 && start2 < end1;
+        } catch (Exception e) {
+            return jamBaru.equalsIgnoreCase(jamAda);
+        }
+    }
     /**
      * Creates new form PanelIsiKRS
      */
     public PanelIsiKRS() {
-        initComponents();
+initComponents();
         setupTabel();
+
+        // 1. CEK SESI LOGIN DI PINTU MASUK UTAMA
+        if (Login.getUserLogin() == null || Login.getUserLogin().trim().isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "Sesi login tidak valid atau telah berakhir.\nMengalihkan ke halaman Login...", 
+                "Keamanan Sistem", 
+                javax.swing.JOptionPane.ERROR_MESSAGE);
+            
+            // 2. TUTUP MENU UTAMA & BUKA LOGIN
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                java.awt.Window win = javax.swing.SwingUtilities.getWindowAncestor(this);
+                if (win != null) {
+                    win.dispose(); // Tutup paksa Menu Utama
+                }
+                new Login().setVisible(true); // Buka kembali layar Login
+            });
+            
+            return; // 3. HENTIKAN PROSES! (Tabel dan Data di bawah ini tidak akan di-load)
+        }
+
+        // Jika sesi aman, jalankan seperti biasa
         loadDataMahasiswa();
         loadKelasTersedia();
     }
@@ -273,25 +318,36 @@ private String idPeriodeAktif = "";
 
     private void btnAmbilActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAmbilActionPerformed
         // TODO add your handling code here:
-        int baris = tblKelasTersedia.getSelectedRow();
+       int baris = tblKelasTersedia.getSelectedRow();
         if(baris == -1) {
             javax.swing.JOptionPane.showMessageDialog(this, "Pilih kelas di tabel kiri dulu!"); return;
         }
-
+        
+        // DEKLARASI VARIABEL (Yang sebelumnya tidak sengaja terhapus)
         String kodeMkBaru = modelTersedia.getValueAt(baris, 1).toString();
         String hariBaru = modelTersedia.getValueAt(baris, 4).toString();
         String jamBaru = modelTersedia.getValueAt(baris, 5).toString();
 
-        // CEK BENTROK JADWAL & MATKUL KEMBAR DI KERANJANG
+        // CEK BENTROK JADWAL & MATKUL KEMBAR DI KERANJANG (Dibungkus For-Loop)
         for(int i=0; i < modelKrs.getRowCount(); i++){
+            // 1. Cek Matkul Kembar
             if(kodeMkBaru.equals(modelKrs.getValueAt(i, 1).toString())){
                 javax.swing.JOptionPane.showMessageDialog(this, "Gagal! Mata Kuliah ini sudah kamu ambil."); return;
             }
-            if(hariBaru.equals(modelKrs.getValueAt(i, 4).toString()) && jamBaru.equals(modelKrs.getValueAt(i, 5).toString())){
-                javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Jadwal ini tabrakan dengan kelas " + modelKrs.getValueAt(i, 2).toString()); return;
+            
+            // 2. CEK BENTROK WAKTU (MENGGUNAKAN FUNGSI CERDAS)
+            String hariKeranjang = modelKrs.getValueAt(i, 4).toString();
+            String jamKeranjang = modelKrs.getValueAt(i, 5).toString();
+
+            if(hariBaru.equals(hariKeranjang) && cekBentrokWaktu(jamBaru, jamKeranjang)){
+                javax.swing.JOptionPane.showMessageDialog(this, 
+                    "BENTROK JADWAL!\nKelas ini beririsan waktu dengan kelas di keranjang Anda pada hari " + hariKeranjang + " jam " + jamKeranjang, 
+                    "Jadwal Bentrok", 
+                    javax.swing.JOptionPane.ERROR_MESSAGE);
+                return;
             }
         }
-
+        
         // Pindahkan ke keranjang
         modelKrs.addRow(new Object[]{
             modelTersedia.getValueAt(baris, 0), modelTersedia.getValueAt(baris, 1), modelTersedia.getValueAt(baris, 2),
@@ -314,46 +370,66 @@ private String idPeriodeAktif = "";
 
     private void btnAjukanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAjukanActionPerformed
         // TODO add your handling code here:
-        if(modelKrs.getRowCount() == 0) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Keranjang KRS masih kosong!"); return;
+       // 1. CEK KERANJANG KOSONG (Solusi Bug #4)
+        if (modelKrs.getRowCount() == 0) {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "Keranjang KRS masih kosong!\nSilakan pilih mata kuliah terlebih dahulu.", 
+                "Peringatan", 
+                javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
         }
-        if(totalSks > 24) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Total SKS tidak boleh lebih dari 24!"); return;
+
+        // 2. CEK BATAS MAKSIMAL SKS (Solusi Bug #4)
+        if (totalSks > 24) {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "Total SKS melebihi batas maksimal (24 SKS)!\nSKS Anda saat ini: " + totalSks + " SKS.\nSilakan batalkan beberapa mata kuliah.", 
+                "Peringatan Batas SKS", 
+                javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
         }
 
         Database db = new Database();
         try {
-            // Cek apakah mhs sudah pernah KRS-an di periode ini
-            java.sql.ResultSet rsCek = (java.sql.ResultSet) db.readDB("id_krs", "krs_header", "nim = '" + lblNim.getText() + "' AND id_periode = '" + idPeriodeAktif + "'");
+            java.sql.ResultSet rsCek = db.readDBSafe("SELECT id_krs FROM krs_header WHERE nim = ? AND id_periode = ?", lblNim.getText(), idPeriodeAktif);
             if(rsCek != null && rsCek.next()){
-                javax.swing.JOptionPane.showMessageDialog(this, "Kamu SUDAH mengajukan KRS untuk periode ini. Menunggu validasi Dosen."); return;
+                javax.swing.JOptionPane.showMessageDialog(this, "Kamu SUDAH mengajukan KRS untuk periode ini."); return;
             }
 
-            // 1. SIMPAN HEADER KRS
             String tgl = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
-            String valHeader = "'" + totalSks + "', '" + tgl + "', 'Menunggu', '" + lblNim.getText() + "', '" + idPeriodeAktif + "'";
-            db.createDB("krs_header", "total_sks, tgl_pengajuan, status_validasi, nim, id_periode", valHeader);
+            String sqlHeader = "INSERT INTO krs_header (total_sks, tgl_pengajuan, status_validasi, nim, id_periode) VALUES (?, ?, 'Menunggu', ?, ?)";
+            if (!db.beginTransaction()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Gagal memulai transaksi sistem!"); return;
+            }
 
-            // 2. AMBIL ID KRS BARU
-            java.sql.ResultSet rsKrs = (java.sql.ResultSet) db.readDB("id_krs", "krs_header", "nim = '" + lblNim.getText() + "' AND id_periode = '" + idPeriodeAktif + "'");
-            if(rsKrs != null && rsKrs.next()) {
-                String idKrs = rsKrs.getString("id_krs");
+            int idKrsBaru = db.insertAndGetId(sqlHeader, totalSks, tgl, lblNim.getText(), idPeriodeAktif);
 
-                // 3. SIMPAN DETAIL & POTONG KUOTA KELAS
+           if(idKrsBaru != -1) {
                 for(int i=0; i<modelKrs.getRowCount(); i++){
                     String idKelas = modelKrs.getValueAt(i, 0).toString();
-                    db.createDB("krs_detail", "id_krs, id_kelas", "'" + idKrs + "', '" + idKelas + "'");
-                    // Potong kuota
-                    db.updateDB("kelas", "kuota = kuota - 1", "id_kelas = '" + idKelas + "'");
-                }
-
+                    
+                    boolean detailOk = db.executeDBSafe("INSERT INTO krs_detail (id_krs, id_kelas) VALUES (?, ?)", idKrsBaru, idKelas);
+                    
+                    // ---> TAMBAHKAN 'AND kuota > 0' DI SINI:
+                    boolean kuotaOk = db.executeDBSafe("UPDATE kelas SET kuota = kuota - 1 WHERE id_kelas = ? AND kuota > 0", idKelas);
+                    
+                    if (!detailOk || !kuotaOk) {
+                        throw new Exception("Gagal menyimpan jadwal. Kuota kelas ID " + idKelas + " mungkin sudah penuh direbut mahasiswa lain!");
+                    }
+                }   
+                
+                // 2. JIKA SEMUA LOOP AMAN, SIMPAN PERMANEN
+                db.commit(); 
                 javax.swing.JOptionPane.showMessageDialog(this, "Berhasil! KRS kamu telah diajukan dan sedang Menunggu Validasi Dosen Wali.");
                 modelKrs.setRowCount(0);
                 hitungSKS();
                 loadKelasTersedia();
+            } else {
+                throw new Exception("Gagal membuat formulir pengajuan KRS.");
             }
         } catch(Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal Mengajukan: " + e.getMessage());
+            // 3. JIKA ADA ERROR DI TENGAH JALAN, BATALKAN SEMUA (ROLLBACK)
+            db.rollback();
+            javax.swing.JOptionPane.showMessageDialog(this, "Gagal Mengajukan KRS!\nSemua data dikembalikan seperti semula.\nError: " + e.getMessage());
         }
     }//GEN-LAST:event_btnAjukanActionPerformed
 

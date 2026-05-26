@@ -26,52 +26,28 @@ public class PanelKelas extends javax.swing.JPanel {
     private void loadComboBox() {
         try {
             Database db = new Database();
-            // 1. Isi cbMatkul
-            java.sql.ResultSet rsMk = (java.sql.ResultSet) db.readDB("kode_mk, nama_mk", "mata_kuliah", "1=1");
+            java.sql.ResultSet rsMk = db.readDBSafe("SELECT kode_mk, nama_mk FROM mata_kuliah");
             cbMatkul.removeAllItems();
-            while (rsMk != null && rsMk.next()) {
-                cbMatkul.addItem(rsMk.getString("kode_mk") + " - " + rsMk.getString("nama_mk"));
-            }
+            while (rsMk != null && rsMk.next()) { cbMatkul.addItem(rsMk.getString("kode_mk") + " - " + rsMk.getString("nama_mk")); }
 
-            // 2. Isi cbDosen
-            java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn, nama_dosen", "dosen", "1=1");
+            java.sql.ResultSet rsDosen = db.readDBSafe("SELECT nidn, nama_dosen FROM dosen");
             cbDosen.removeAllItems();
-            while (rsDosen != null && rsDosen.next()) {
-                cbDosen.addItem(rsDosen.getString("nidn") + " - " + rsDosen.getString("nama_dosen"));
-            }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal memuat pilihan: " + e.getMessage());
-        }
+            while (rsDosen != null && rsDosen.next()) { cbDosen.addItem(rsDosen.getString("nidn") + " - " + rsDosen.getString("nama_dosen")); }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }
 
     private void tampilData() {
         javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel();
-        model.addColumn("ID Kelas");
-        model.addColumn("Kode MK");
-        model.addColumn("NIDN Dosen");
-        model.addColumn("Ruang");
-        model.addColumn("Hari");
-        model.addColumn("Jam");
-        model.addColumn("Kuota");
+        model.addColumn("ID Kelas"); model.addColumn("Kode MK"); model.addColumn("NIDN Dosen");
+        model.addColumn("Ruang"); model.addColumn("Hari"); model.addColumn("Jam"); model.addColumn("Kuota");
         tblKelas.setModel(model);
-
         try {
             Database db = new Database();
-            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "kelas", "1=1");
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM kelas");
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString("id_kelas"),
-                    rs.getString("kode_mk"),
-                    rs.getString("nidn"),
-                    rs.getString("ruang"),
-                    rs.getString("hari"),
-                    rs.getString("jam"),
-                    rs.getString("kuota")
-                });
+                model.addRow(new Object[]{ rs.getString("id_kelas"), rs.getString("kode_mk"), rs.getString("nidn"), rs.getString("ruang"), rs.getString("hari"), rs.getString("jam"), rs.getString("kuota") });
             }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal memuat data kelas: " + e.getMessage());
-        }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }
     // FUNGSI KHUSUS UNTUK MEMBACA IRISAN WAKTU
     private boolean cekBentrokWaktu(String jamBaru, String jamAda) {
@@ -326,85 +302,83 @@ public class PanelKelas extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
-if (cbMatkul.getSelectedItem() == null || cbDosen.getSelectedItem() == null) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Mata Kuliah atau Dosen belum dipilih!");
+// 1. VALIDASI COMBOBOX
+        if (cbMatkul.getSelectedItem() == null || cbDosen.getSelectedItem() == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Data Mata Kuliah dan Dosen belum tersedia atau belum dipilih!", "Peringatan", javax.swing.JOptionPane.WARNING_MESSAGE);
             return;
         }
-
+        
         String kodeMk = cbMatkul.getSelectedItem().toString().split(" - ")[0];
         String nidn = cbDosen.getSelectedItem().toString().split(" - ")[0];
-        String ruang = txtRuang.getText().trim(); // Sesuaikan nama variabel txtRuang/txtRuangan
+        String ruang = txtRuang.getText().trim(); 
         String jam = txtJam.getText().trim();
-        String hari = cbHari.getSelectedItem().toString();
+        String hari = cbHari.getSelectedItem().toString(); 
         String kuotaStr = txtKuota.getText().trim();
 
+        // 2. VALIDASI INPUT KOSONG
         if (ruang.isEmpty() || jam.isEmpty() || kuotaStr.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Semua isian jadwal (Ruang, Jam, Kuota) harus diisi!");
+            javax.swing.JOptionPane.showMessageDialog(this, "Kolom Ruang, Jam, dan Kuota tidak boleh kosong!", "Peringatan", javax.swing.JOptionPane.WARNING_MESSAGE);
             return;
         }
-        // ==========================================================
-        // SATPAM 0: CEK FORMAT JAM (ANTI-TYPO)
+        
+        // 3. VALIDASI FORMAT JAM
         if (!jam.matches("^\\d{2}[:.]\\d{2}\\s*-\\s*\\d{2}[:.]\\d{2}$")) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Format Jam salah atau Typo!\n\nGunakan format standar 24 Jam.\nContoh yang benar: 08:00 - 10:30\natau 08.00-10.30");
-            return;
-        }
-        // ==========================================================
-        int kuota;
-        try {
-            kuota = Integer.parseInt(kuotaStr);
-        } catch (NumberFormatException e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Kolom Kuota harus berupa angka bulat!");
+            javax.swing.JOptionPane.showMessageDialog(this, "Format Jam salah! Gunakan: 08:00 - 10:30", "Peringatan Format", javax.swing.JOptionPane.WARNING_MESSAGE); 
             return;
         }
 
+        // 4. VALIDASI KUOTA (Harus Angka & Lebih dari 0)
+        int kuota;
+        try { 
+            kuota = Integer.parseInt(kuotaStr); 
+            if (kuota <= 0) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Jumlah kuota kelas harus lebih dari 0!", "Validasi Kuota", javax.swing.JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+        } catch (NumberFormatException e) { 
+            javax.swing.JOptionPane.showMessageDialog(this, "Kolom Kuota harus diisi dengan angka bulat!", "Peringatan Format", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return; 
+        }
+
+        // --- KODINGAN DATABASE DI BAWAHNYA TETAP SAMA ---
         Database db = new Database();
         try {
-            // SYARAT PENGECUALIAN SAAT UPDATE (Agar tidak bentrok dengan dirinya sendiri)
-            String kecualiID = "";
+            // SATPAM ANTI-BENTROK YANG LEBIH CERDAS
+            String queryRuang = "SELECT jam FROM kelas WHERE ruang = ? AND hari = ?";
+            String queryDosen = "SELECT jam FROM kelas WHERE nidn = ? AND hari = ?";
+            java.sql.ResultSet rsRuang, rsDosen;
+
             if (btnSimpan.getText().equals("Ubah Data")) {
-                kecualiID = " AND id_kelas != '" + idKelasTerpilih + "'";
+                queryRuang += " AND id_kelas != ?"; queryDosen += " AND id_kelas != ?";
+                rsRuang = db.readDBSafe(queryRuang, ruang, hari, idKelasTerpilih);
+                rsDosen = db.readDBSafe(queryDosen, nidn, hari, idKelasTerpilih);
+            } else {
+                rsRuang = db.readDBSafe(queryRuang, ruang, hari);
+                rsDosen = db.readDBSafe(queryDosen, nidn, hari);
             }
 
-            // SATPAM 1: CEK BENTROK RUANG (Update Logika Waktu)
-            String cekRuang = "ruang = '" + ruang + "' AND hari = '" + hari + "'" + kecualiID;
-            java.sql.ResultSet rsRuang = (java.sql.ResultSet) db.readDB("jam", "kelas", cekRuang);
             while (rsRuang != null && rsRuang.next()) {
                 if (cekBentrokWaktu(jam, rsRuang.getString("jam"))) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Ruang " + ruang + " sedang dipakai kelas lain pada jam " + rsRuang.getString("jam"));
-                    return;
+                    javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Ruang dipakai jam " + rsRuang.getString("jam")); return;
                 }
             }
-
-            // SATPAM 2: CEK BENTROK DOSEN (Update Logika Waktu)
-            String cekDosen = "nidn = '" + nidn + "' AND hari = '" + hari + "'" + kecualiID;
-            java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("jam", "kelas", cekDosen);
             while (rsDosen != null && rsDosen.next()) {
                 if (cekBentrokWaktu(jam, rsDosen.getString("jam"))) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Dosen ini sudah mengajar kelas lain pada jam " + rsDosen.getString("jam"));
-                    return;
+                    javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Dosen mengajar jam " + rsDosen.getString("jam")); return;
                 }
             }
 
-            // EKSEKUSI DATABASE
+            // EKSEKUSI
             if (btnSimpan.getText().equals("Simpan")) {
-                // LOGIKA SIMPAN BARU
-                String kolom = "kode_mk, nidn, ruang, hari, jam, kuota";
-                String nilai = "'" + kodeMk + "', '" + nidn + "', '" + ruang + "', '" + hari + "', '" + jam + "', '" + kuota + "'";
-                if (db.createDB("kelas", kolom, nilai)) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "Jadwal Kelas Berhasil Dibuka!");
-                    btnResetActionPerformed(evt);
+                if (db.executeDBSafe("INSERT INTO kelas (kode_mk, nidn, ruang, hari, jam, kuota) VALUES (?, ?, ?, ?, ?, ?)", kodeMk, nidn, ruang, hari, jam, kuota)) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Kelas Dibuka!"); btnResetActionPerformed(evt);
                 }
             } else {
-                // LOGIKA UBAH DATA
-                String nilaiUpdate = "kode_mk = '" + kodeMk + "', nidn = '" + nidn + "', ruang = '" + ruang + "', hari = '" + hari + "', jam = '" + jam + "', kuota = '" + kuota + "'";
-                if (db.updateDB("kelas", nilaiUpdate, "id_kelas = '" + idKelasTerpilih + "'")) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "Jadwal Kelas Berhasil Diperbarui!");
-                    btnResetActionPerformed(evt);
+                if (db.executeDBSafe("UPDATE kelas SET kode_mk=?, nidn=?, ruang=?, hari=?, jam=?, kuota=? WHERE id_kelas=?", kodeMk, nidn, ruang, hari, jam, kuota, idKelasTerpilih)) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Kelas Diperbarui!"); btnResetActionPerformed(evt);
                 }
             }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
-        }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void txtRuangActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtRuangActionPerformed
@@ -464,51 +438,39 @@ if (cbMatkul.getSelectedItem() == null || cbDosen.getSelectedItem() == null) {
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
-        if (idKelasTerpilih.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Pilih kelas di tabel yang ingin dihapus!");
-            return;
-        }
-
-        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin ingin menghapus kelas/jadwal ini?", "Konfirmasi Hapus", javax.swing.JOptionPane.YES_NO_OPTION);
-        if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
+       if (idKelasTerpilih.isEmpty()) return;
+        if (javax.swing.JOptionPane.showConfirmDialog(this, "Yakin Hapus?", "Konfirmasi", 0) == 0) {
             Database db = new Database();
-            if (db.deleteDB("kelas", "id_kelas = '" + idKelasTerpilih + "'")) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Jadwal Kelas berhasil dihapus!");
-                btnResetActionPerformed(evt);
+            if (db.executeDBSafe("DELETE FROM kelas WHERE id_kelas = ?", idKelasTerpilih)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Jadwal dihapus!"); btnResetActionPerformed(evt);
             }
         }
     }//GEN-LAST:event_btnHapusActionPerformed
 
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
         // TODO add your handling code here:
-        String kataKunci = txtCari.getText().trim();
+       String keyword = "%" + txtCari.getText().trim() + "%";
         javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblKelas.getModel();
         model.setRowCount(0); 
         try {
             Database db = new Database();
-            String kondisi = "ruang LIKE '%" + kataKunci + "%' OR kode_mk LIKE '%" + kataKunci + "%' OR hari LIKE '%" + kataKunci + "%'";
-            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "kelas", kondisi);
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM kelas WHERE ruang LIKE ? OR kode_mk LIKE ? OR hari LIKE ?", keyword, keyword, keyword);
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{rs.getString("id_kelas"), rs.getString("kode_mk"), rs.getString("nidn"), rs.getString("ruang"), rs.getString("hari"), rs.getString("jam"), rs.getString("kuota")});
+                model.addRow(new Object[]{ rs.getString("id_kelas"), rs.getString("kode_mk"), rs.getString("nidn"), rs.getString("ruang"), rs.getString("hari"), rs.getString("jam"), rs.getString("kuota") });
             }
-            if (model.getRowCount() == 0) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Jadwal kelas tidak ditemukan!");
-                tampilData();
-            }
-        } catch (Exception e) {}
+            if (model.getRowCount() == 0) tampilData();
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }//GEN-LAST:event_btnCariActionPerformed
 
     private void txtFilterMatkulKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFilterMatkulKeyReleased
         // TODO add your handling code here:
-        String filter = txtFilterMatkul.getText().trim();
+     String keyword = "%" + txtFilterMatkul.getText().trim() + "%";
         try {
             Database db = new Database();
-            java.sql.ResultSet rsMk = (java.sql.ResultSet) db.readDB("kode_mk, nama_mk", "mata_kuliah", "nama_mk LIKE '%" + filter + "%' OR kode_mk LIKE '%" + filter + "%'");
+            java.sql.ResultSet rs = db.readDBSafe("SELECT kode_mk, nama_mk FROM mata_kuliah WHERE nama_mk LIKE ? OR kode_mk LIKE ?", keyword, keyword);
             cbMatkul.removeAllItems();
-            while (rsMk != null && rsMk.next()) {
-                cbMatkul.addItem(rsMk.getString("kode_mk") + " - " + rsMk.getString("nama_mk"));
-            }
-        } catch (Exception e) {}
+            while (rs != null && rs.next()) { cbMatkul.addItem(rs.getString("kode_mk") + " - " + rs.getString("nama_mk")); }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }//GEN-LAST:event_txtFilterMatkulKeyReleased
 
     private void txtFilterDosenKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFilterDosenKeyPressed
@@ -517,15 +479,13 @@ if (cbMatkul.getSelectedItem() == null || cbDosen.getSelectedItem() == null) {
 
     private void txtFilterDosenKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFilterDosenKeyReleased
         // TODO add your handling code here:
-        String filter = txtFilterDosen.getText().trim();
+        String keyword = "%" + txtFilterDosen.getText().trim() + "%";
         try {
             Database db = new Database();
-            java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn, nama_dosen", "dosen", "nama_dosen LIKE '%" + filter + "%'");
+            java.sql.ResultSet rs = db.readDBSafe("SELECT nidn, nama_dosen FROM dosen WHERE nama_dosen LIKE ?", keyword);
             cbDosen.removeAllItems();
-            while (rsDosen != null && rsDosen.next()) {
-                cbDosen.addItem(rsDosen.getString("nidn") + " - " + rsDosen.getString("nama_dosen"));
-            }
-        } catch (Exception e) {}
+            while (rs != null && rs.next()) { cbDosen.addItem(rs.getString("nidn") + " - " + rs.getString("nama_dosen")); }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }//GEN-LAST:event_txtFilterDosenKeyReleased
 
     private void txtFilterMatkulActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtFilterMatkulActionPerformed

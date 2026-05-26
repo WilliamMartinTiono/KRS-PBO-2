@@ -17,6 +17,7 @@ public class MenuUtamaDosen extends javax.swing.JFrame {
      */
     public MenuUtamaDosen() {
         initComponents();
+        WindowUtil.setWindow80PercentCenter(this);
     }
 
     /**
@@ -28,21 +29,122 @@ public class MenuUtamaDosen extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        panelKontenMhs = new javax.swing.JPanel();
+        jPanel10 = new javax.swing.JPanel();
+        jLabel2 = new javax.swing.JLabel();
+        btnIsiKrs8 = new javax.swing.JButton();
+        btnLogout8 = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+
+        panelKontenMhs.setLayout(new java.awt.BorderLayout());
+
+        jLabel2.setText("Siakad");
+
+        btnIsiKrs8.setText("KRS Mahasiswa");
+        btnIsiKrs8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnIsiKrs8ActionPerformed(evt);
+            }
+        });
+
+        btnLogout8.setText("Log Out");
+        btnLogout8.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLogout8ActionPerformed(evt);
+            }
+        });
+
+        javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
+        jPanel10.setLayout(jPanel10Layout);
+        jPanel10Layout.setHorizontalGroup(
+            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel10Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnIsiKrs8, javax.swing.GroupLayout.DEFAULT_SIZE, 119, Short.MAX_VALUE)
+                    .addGroup(jPanel10Layout.createSequentialGroup()
+                        .addComponent(btnLogout8)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+            .addGroup(jPanel10Layout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addComponent(jLabel2)
+                .addGap(0, 0, Short.MAX_VALUE))
+        );
+        jPanel10Layout.setVerticalGroup(
+            jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel10Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel2)
+                .addGap(18, 18, 18)
+                .addComponent(btnIsiKrs8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 417, Short.MAX_VALUE)
+                .addComponent(btnLogout8)
+                .addContainerGap())
+        );
+
+        jLabel1.setText("Dashboard Dosen - Sistem Akademik");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(46, 46, 46)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(299, 299, 299))
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(panelKontenMhs, javax.swing.GroupLayout.PREFERRED_SIZE, 534, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(18, 18, 18))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(3, 3, 3)
+                        .addComponent(panelKontenMhs, javax.swing.GroupLayout.PREFERRED_SIZE, 490, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel10, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(0, 12, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void btnIsiKrs8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIsiKrs8ActionPerformed
+        // 1. Bersihkan wadah konten utama
+        panelKontenMhs.removeAll();
+
+        // 2. Panggil PanelAccKRS (Panel Validasi milik Dosen)
+        PanelAccKRS pAcc = new PanelAccKRS(); 
+
+        // 3. Masukkan PanelAccKRS ke dalam wadah
+        panelKontenMhs.add(pAcc, java.awt.BorderLayout.CENTER);
+
+        // 4. Render ulang
+        panelKontenMhs.repaint();
+        panelKontenMhs.revalidate();
+    }//GEN-LAST:event_btnIsiKrs8ActionPerformed
+
+    private void btnLogout8ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogout8ActionPerformed
+        // TODO add your handling code here:
+        // 1. Munculkan pop-up konfirmasi
+        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin ingin keluar?", "Konfirmasi", javax.swing.JOptionPane.YES_NO_OPTION);
+        if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
+
+            // ---> BERSIHKAN SESI SEBELUM LOGOUT <---
+            Login.clearSession();
+
+            this.dispose(); // Tutup menu utama
+            new Login().setVisible(true); // Buka kembali layar login
+        }
+    }//GEN-LAST:event_btnLogout8ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -70,5 +172,43 @@ public class MenuUtamaDosen extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnIsiKrs;
+    private javax.swing.JButton btnIsiKrs1;
+    private javax.swing.JButton btnIsiKrs2;
+    private javax.swing.JButton btnIsiKrs3;
+    private javax.swing.JButton btnIsiKrs4;
+    private javax.swing.JButton btnIsiKrs5;
+    private javax.swing.JButton btnIsiKrs6;
+    private javax.swing.JButton btnIsiKrs7;
+    private javax.swing.JButton btnIsiKrs8;
+    private javax.swing.JButton btnLogout;
+    private javax.swing.JButton btnLogout1;
+    private javax.swing.JButton btnLogout2;
+    private javax.swing.JButton btnLogout3;
+    private javax.swing.JButton btnLogout4;
+    private javax.swing.JButton btnLogout5;
+    private javax.swing.JButton btnLogout6;
+    private javax.swing.JButton btnLogout7;
+    private javax.swing.JButton btnLogout8;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel3;
+    private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
+    private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
+    private javax.swing.JPanel jPanel10;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
+    private javax.swing.JPanel jPanel9;
+    private javax.swing.JPanel panelKontenMhs;
     // End of variables declaration//GEN-END:variables
 }

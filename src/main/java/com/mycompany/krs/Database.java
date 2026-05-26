@@ -6,102 +6,132 @@ package com.mycompany.krs;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.ResultSet;
 /**
  *
  * @author User
  */
 public class Database {
-    String host = "jdbc:mysql://localhost:3306/krspbo2lancar";
-    String username = "root";
-    String password = "";
+    private static final String URL = "jdbc:mysql://localhost:3306/krspbo2lancar"; // Pastikan nama DB benar
+    private static final String USER = "root";
+    private static final String PASS = "";
 
-    private Connection koneksi() {
-        Connection connection = null;
-
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            
-            connection = DriverManager.getConnection (host, username, password);
-        }catch (ClassNotFoundException e){
-            System.err.println("Class Not Found : " + e.getMessage());
-        }catch (SQLException e) {
-            System.err.println("SQL Error : " + e.getMessage());
-        }
-        
-        return connection;
-    }
+    private static Connection connection = null;
     
-    Object readDB (String kolom, String tabel, String kondisi){
-        Connection con = koneksi();
-        
-        if (con !=null){
-            try{
-                String query = "SELECT " + kolom + " FROM " + tabel + " WHERE " + kondisi + ";";
-                Statement st = con.createStatement();
-                ResultSet rs = st.executeQuery(query);
-                
-                return rs;
-            }catch (SQLException e){
-                System.err.println("SQL Error : " + e.getMessage());
-            }
+    // FUNGSI TRANSAKSI DATABASE
+    public boolean beginTransaction() {
+        try { 
+            getConnection().setAutoCommit(false); 
+            return true; 
+        } catch (SQLException e) { 
+            e.printStackTrace();
+            return false; 
         }
-        return null;
     }
-    boolean createDB (String tabel, String kolom, String nilai){
-        Connection con = koneksi();
-        
-        if (con != null){
-            try {
-                // Contoh output query: INSERT INTO mahasiswa (nim, nama) VALUES ('123', 'Budi');
-                String query = "INSERT INTO " + tabel + " (" + kolom + ") VALUES (" + nilai + ");";
-                Statement st = con.createStatement();
-                st.executeUpdate(query);
-                con.close();
-                
-                return true; // Mengembalikan true jika insert berhasil
-            } catch (SQLException e) {
-                System.err.println("SQL Error : " + e.getMessage());
-            }
+
+    public boolean commit() {
+        try { 
+            getConnection().commit(); 
+            getConnection().setAutoCommit(true); 
+            return true; 
+        } catch (SQLException e) { 
+            e.printStackTrace();
+            rollback(); 
+            return false; 
         }
-        return false; // Mengembalikan false jika insert gagal
     }
-    boolean updateDB (String tabel, String nilaiUpdate, String kondisi){
-        Connection con = koneksi();
-        
-        if (con != null){
-            try {
-                // Contoh output query: UPDATE mahasiswa SET nama = 'Andi' WHERE nim = '123';
-                String query = "UPDATE " + tabel + " SET " + nilaiUpdate + " WHERE " + kondisi + ";";
-                Statement st = con.createStatement();
-                st.executeUpdate(query);
-                con.close();
-                
-                return true; // Mengembalikan true jika update berhasil
-            } catch (SQLException e) {
-                System.err.println("SQL Error : " + e.getMessage());
-            }
+
+    public void rollback() {
+        try { 
+            getConnection().rollback(); 
+            getConnection().setAutoCommit(true); 
+        } catch (SQLException e) { 
+            e.printStackTrace(); 
         }
-        return false; // Mengembalikan false jika update gagal
     }
-    boolean deleteDB (String tabel, String kondisi){
-        Connection con = koneksi();
-        
-        if (con != null){
-            try {
-                // Contoh output query: DELETE FROM mahasiswa WHERE nim = '123';
-                String query = "DELETE FROM " + tabel + " WHERE " + kondisi + ";";
-                Statement st = con.createStatement();
-                st.executeUpdate(query);
-                con.close();
-                
-                return true; // Mengembalikan true jika delete berhasil
-            } catch (SQLException e) {
-                System.err.println("SQL Error : " + e.getMessage());
+    public static Connection getConnection() {
+try {
+            if (connection == null || connection.isClosed()) {
+                connection = DriverManager.getConnection(URL, USER, PASS);
             }
+            return connection;
+        } catch (SQLException e) {
+            System.err.println("Gagal koneksi database: " + e.getMessage());
+            return null;
         }
-        return false; // Mengembalikan false jika delete gagal
+    }
+
+    // FUNGSI BACA DATA AMAN (Mengatasi SQL Injection)
+    // Cara pakai: db.readDBSafe("SELECT * FROM tabel WHERE nama LIKE ?", "%" + kataKunci + "%");
+    public ResultSet readDBSafe(String query, Object... params) {
+        Connection conn = getConnection();
+        if (conn == null) {
+            javax.swing.JOptionPane.showMessageDialog(null, "Tidak dapat terhubung ke database!\nPastikan MySQL (XAMPP) sudah berjalan.", "Error Koneksi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+        try {
+            PreparedStatement ps = conn.prepareStatement(query);
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+            return ps.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    // FUNGSI EKSEKUSI AMAN (INSERT, UPDATE, DELETE & Null Crash)
+    public boolean executeDBSafe(String query, Object... params) {
+        Connection conn = getConnection();
+        if (conn == null) {
+            javax.swing.JOptionPane.showMessageDialog(null, "Tidak dapat terhubung ke database!\nPastikan MySQL (XAMPP) sudah berjalan.", "Error Koneksi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return false;
+        }
+        try {
+            PreparedStatement ps = conn.prepareStatement(query);
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // FUNGSI INSERT & AMBIL ID (Mengatasi Race Condition & Null Crash)
+    public int insertAndGetId(String query, Object... params) {
+        Connection conn = getConnection();
+        if (conn == null) {
+            javax.swing.JOptionPane.showMessageDialog(null, "Tidak dapat terhubung ke database!\nPastikan MySQL (XAMPP) sudah berjalan.", "Error Koneksi", javax.swing.JOptionPane.ERROR_MESSAGE);
+            return -1;
+        }
+        try {
+            PreparedStatement ps = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS);
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+            ps.executeUpdate();
+            ResultSet rs = ps.getGeneratedKeys();
+            if (rs.next()) return rs.getInt(1);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+    public static String hashPassword(String password) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] hash = md.digest(password.getBytes("UTF-8"));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : hash) sb.append(String.format("%02x", b));
+            return sb.toString();
+        } catch (Exception e) {
+            return password; 
+        }
     }
 }

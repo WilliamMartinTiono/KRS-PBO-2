@@ -13,41 +13,27 @@ import javax.swing.JOptionPane;
 public class PanelAkun extends javax.swing.JPanel {
 private String idAdminTerpilih = ""; // Penampung ID sementara
 private void tampilData() {
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("ID Admin");
-        model.addColumn("Username");
-        model.addColumn("Password");
-        model.addColumn("Status Penggunaan");
+        javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel();
+        model.addColumn("ID Admin"); model.addColumn("Username");
+        model.addColumn("Password"); model.addColumn("Status Penggunaan");
         tblAkun.setModel(model);
 
         try {
             Database db = new Database();
-            ResultSet rs = (ResultSet) db.readDB("*", "admin", "1=1");
+            // SUPER CEPAT: 1x panggil database langsung dapet semuanya
+            String sql = "SELECT a.id_admin, a.username, m.nama_mhs, d.nama_dosen FROM admin a " +
+                         "LEFT JOIN mahasiswa m ON m.id_user = a.id_admin " +
+                         "LEFT JOIN dosen d ON d.id_user = a.id_admin";
+            java.sql.ResultSet rs = db.readDBSafe(sql);
             
             while (rs != null && rs.next()) {
-                String id = rs.getString("id_admin");
-                String user = rs.getString("username");
+                String status = "Tersedia / Admin Utama";
+                if (rs.getString("nama_mhs") != null) status = "Mahasiswa: " + rs.getString("nama_mhs");
+                else if (rs.getString("nama_dosen") != null) status = "Dosen: " + rs.getString("nama_dosen");
                 
-                String status = "Tersedia / Admin Utama"; 
-                Database dbCek = new Database();
-                
-                // MENGINTIP NAMA MAHASISWA
-                ResultSet rsMhs = (ResultSet) dbCek.readDB("nim, nama_mhs", "mahasiswa", "id_user = '" + id + "'");
-                if (rsMhs != null && rsMhs.next()) {
-                    status = "Mahasiswa: " + rsMhs.getString("nama_mhs"); // Langsung tampilkan namanya!
-                } else {
-                    // MENGINTIP NAMA DOSEN
-                    ResultSet rsDsn = (ResultSet) dbCek.readDB("nidn, nama_dosen", "dosen", "id_user = '" + id + "'");
-                    if (rsDsn != null && rsDsn.next()) {
-                        status = "Dosen: " + rsDsn.getString("nama_dosen"); // Langsung tampilkan namanya!
-                    }
-                }
-                
-                model.addRow(new Object[]{id, user, "********", status});
+                model.addRow(new Object[]{rs.getString("id_admin"), rs.getString("username"), "********", status});
             }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal memuat akun: " + e.getMessage());
-        }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }
     
     /**
@@ -228,112 +214,56 @@ private void tampilData() {
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
-        if (btnSimpan.getText().equals("Simpan")) {
-    // ---> PASTE SELURUH KODINGAN "SIMPAN" LAMA KAMU DI SINI <---
-    String user = txtUsername.getText();
-    String pass = new String(txtPassword.getPassword());
-
-    if (user.isEmpty() || pass.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Username dan Password tidak boleh kosong!");
-        return;
-    }
-
-    Database db = new Database();
-    // Validasi: Cek apakah username sudah ada
-    try {
-        ResultSet rsCek = (ResultSet) db.readDB("username", "admin", "username = '" + user + "'");
-        if (rsCek != null && rsCek.next()) {
-            JOptionPane.showMessageDialog(this, "Username '" + user + "' sudah terdaftar! Gunakan yang lain.");
-            return;
-        }
-    } catch (Exception e) {}
-
-    if (db.createDB("admin", "username, password", "'" + user + "', '" + pass + "'")) {
-        JOptionPane.showMessageDialog(this, "Akun berhasil dibuat!");
-        tampilData();
-        btnResetActionPerformed(evt);
-    }
-} else {
-    // ---> PASTE SELURUH KODINGAN "UBAH" LAMA KAMU DI SINI <---
-    String user = txtUsername.getText();
+       String user = txtUsername.getText().trim();
         String pass = new String(txtPassword.getPassword());
-        
-        if (txtUsername.isEditable() || idAdminTerpilih.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih akun di tabel dulu!"); 
-            return;
-        }
-
-        if (pass.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Ketik password baru jika ingin mereset password akun ini!"); 
-            return;
+        if (user.isEmpty() || pass.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Data tidak boleh kosong!"); return;
         }
 
         Database db = new Database();
-        // Sekarang kita mengubah password berdasarkan ID ADMIN, pasti langsung tembus!
-        if (db.updateDB("admin", "password = '" + pass + "'", "id_admin = '" + idAdminTerpilih + "'")) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Password untuk akun " + user + " berhasil diubah!");
-            tampilData(); 
-            btnResetActionPerformed(evt);
+        if (btnSimpan.getText().equals("Simpan")) {
+            try {
+                java.sql.ResultSet rsCek = db.readDBSafe("SELECT username FROM admin WHERE username = ?", user);
+                if (rsCek != null && rsCek.next()) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Username sudah terdaftar!"); return;
+                }
+                if (db.executeDBSafe("INSERT INTO admin (username, password) VALUES (?, ?)", user, pass)) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Akun berhasil dibuat!");
+                    btnResetActionPerformed(evt);
+                }
+            } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
         } else {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal mengubah password!");
+            if (idAdminTerpilih.isEmpty()) return;
+            if (db.executeDBSafe("UPDATE admin SET password = ? WHERE id_admin = ?", pass, idAdminTerpilih)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Password berhasil diubah!");
+                btnResetActionPerformed(evt);
+            }
         }
-}
-        
+ 
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
         // TODO add your handling code here:
      
-       // 1. Ambil kata kunci, hapus spasi (trim), dan kecilkan huruf
-        String keyword = txtCari.getText().toLowerCase().trim();
-        DefaultTableModel model = (DefaultTableModel) tblAkun.getModel();
+       String keyword = "%" + txtCari.getText().trim() + "%";
+        javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblAkun.getModel();
         model.setRowCount(0); 
-
-        if (keyword.isEmpty()) {
-            tampilData();
-            return;
-        }
-
         try {
             Database db = new Database();
-            // 2. Ambil SEMUA akun dari tabel admin
-            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "admin", "1=1");
+            String sql = "SELECT a.id_admin, a.username, m.nama_mhs, d.nama_dosen FROM admin a " +
+                         "LEFT JOIN mahasiswa m ON m.id_user = a.id_admin " +
+                         "LEFT JOIN dosen d ON d.id_user = a.id_admin " +
+                         "WHERE a.username LIKE ? OR m.nama_mhs LIKE ? OR d.nama_dosen LIKE ?";
+            java.sql.ResultSet rs = db.readDBSafe(sql, keyword, keyword, keyword);
             
             while (rs != null && rs.next()) {
-                String id = rs.getString("id_admin");
-                String user = rs.getString("username");
-                String status = "Tersedia / Admin Utama"; 
-                
-                // 3. Cek apakah akun ini milik Mahasiswa
-                Database dbMhs = new Database();
-                java.sql.ResultSet rsMhs = (java.sql.ResultSet) dbMhs.readDB("nama_mhs", "mahasiswa", "id_user = '" + id + "'");
-                
-                if (rsMhs != null && rsMhs.next()) {
-                    status = "Mahasiswa: " + rsMhs.getString("nama_mhs");
-                } else {
-                    // 4. Cek apakah milik Dosen
-                    Database dbDsn = new Database();
-                    java.sql.ResultSet rsDsn = (java.sql.ResultSet) dbDsn.readDB("nama_dosen", "dosen", "id_user = '" + id + "'");
-                    if (rsDsn != null && rsDsn.next()) {
-                        status = "Dosen: " + rsDsn.getString("nama_dosen");
-                    }
-                }
-                
-                // --- LOGIKA PENCARIAN GLOBAL ---
-                // Sekarang kita bandingkan keyword dengan Username ATAU Nama (Status)
-                if (user.toLowerCase().contains(keyword) || status.toLowerCase().contains(keyword)) {
-                    model.addRow(new Object[]{id, user, "********", status});
-                }
+                String status = "Tersedia / Admin Utama";
+                if (rs.getString("nama_mhs") != null) status = "Mahasiswa: " + rs.getString("nama_mhs");
+                else if (rs.getString("nama_dosen") != null) status = "Dosen: " + rs.getString("nama_dosen");
+                model.addRow(new Object[]{rs.getString("id_admin"), rs.getString("username"), "********", status});
             }
-            
-            if (model.getRowCount() == 0) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Data '" + keyword + "' tidak ditemukan!");
-                tampilData();
-            }
-            
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
-        }
+            if (model.getRowCount() == 0) tampilData();
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     
     }//GEN-LAST:event_btnCariActionPerformed
 
@@ -362,65 +292,28 @@ private void tampilData() {
      int baris = tblAkun.getSelectedRow();
         if (baris != -1) {
             idAdminTerpilih = tblAkun.getValueAt(baris, 0).toString();
-            String idUser = tblAkun.getValueAt(baris, 0).toString();
             txtUsername.setText(tblAkun.getValueAt(baris, 1).toString());
             txtPassword.setText("");
             txtUsername.setEditable(false);
-
-            try {
-                Database db = new Database();
-                
-                // AMBIL NAMA MAHASISWA
-                java.sql.ResultSet rsMhs = (java.sql.ResultSet) db.readDB("nim, nama_mhs", "mahasiswa", "id_user = '" + idUser + "'");
-                if (rsMhs != null && rsMhs.next()) {
-                    lblStatus.setText("Status: Dipakai oleh " + rsMhs.getString("nama_mhs"));
-                    lblStatus.setForeground(java.awt.Color.RED); 
-                } else {
-                    // AMBIL NAMA DOSEN
-                    java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn, nama_dosen", "dosen", "id_user = '" + idUser + "'");
-                    if (rsDosen != null && rsDosen.next()) {
-                        lblStatus.setText("Status: Dipakai oleh " + rsDosen.getString("nama_dosen"));
-                        lblStatus.setForeground(java.awt.Color.RED);
-                    } else {
-                        lblStatus.setText("Status: Tersedia / Belum Terpakai");
-                        lblStatus.setForeground(new java.awt.Color(0, 153, 0)); 
-                    }
-                }
-            } catch (Exception e) {
-                lblStatus.setText("Status: Gagal mengecek data");
-            }
+            
+            String status = tblAkun.getValueAt(baris, 3).toString();
+            lblStatus.setText("Status: " + status);
+            lblStatus.setForeground(status.contains("Tersedia") ? new java.awt.Color(0, 153, 0) : java.awt.Color.RED);
+            btnSimpan.setText("Ubah Data");
         }
-        btnSimpan.setText("Ubah Data");
     }//GEN-LAST:event_tblAkunMouseClicked
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
-        if (tblAkun.getSelectedRow() == -1 || idAdminTerpilih.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih akun di tabel dulu!"); 
-            return;
+       if (idAdminTerpilih.isEmpty()) return;
+        if (lblStatus.getText().contains("Mahasiswa") || lblStatus.getText().contains("Dosen")) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Akses Ditolak: Akun sedang dipakai Mahasiswa/Dosen!"); return;
         }
-
-        // PROTEKSI KELAS KAKAP: Jangan izinkan hapus akun kalau sedang dipakai Mahasiswa/Dosen
-        String statusSaatIni = lblStatus.getText();
-        if (statusSaatIni.contains("Dipakai")) {
-            javax.swing.JOptionPane.showMessageDialog(this, "AKSES DITOLAK: Akun ini sedang diikat ke data Mahasiswa/Dosen!\nJika ingin menghapus, silakan hapus data Mahasiswa/Dosen yang bersangkutan di panelnya masing-masing.", "Peringatan Keamanan", javax.swing.JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        String user = txtUsername.getText();
-        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin ingin menghapus akun '" + user + "'?", "Konfirmasi Hapus", javax.swing.JOptionPane.YES_NO_OPTION);
-        
-        if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
+        if (javax.swing.JOptionPane.showConfirmDialog(this, "Yakin hapus?", "Konfirmasi", 0) == 0) {
             Database db = new Database();
-            
-
-            // Hapus berdasarkan ID agar presisi 100%
-            if (db.deleteDB("admin", "id_admin = '" + idAdminTerpilih + "'")) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Akun berhasil dihapus!");
-                tampilData(); 
+            if (db.executeDBSafe("DELETE FROM admin WHERE id_admin = ?", idAdminTerpilih)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Akun dihapus!");
                 btnResetActionPerformed(evt);
-            } else {
-                javax.swing.JOptionPane.showMessageDialog(this, "Gagal menghapus akun!");
             }
         }
     }//GEN-LAST:event_btnHapusActionPerformed

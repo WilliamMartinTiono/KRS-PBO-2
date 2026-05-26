@@ -15,48 +15,31 @@ public class PanelProdi extends javax.swing.JPanel {
     
 // Method untuk menampilkan data ke tabel
  private void tampilData() {
-     DefaultTableModel model = new DefaultTableModel();
-     model.addColumn("ID Prodi");
-     model.addColumn("Nama Prodi");
-     tblProdi.setModel(model);
+        javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel();
+        model.addColumn("ID Prodi"); model.addColumn("Nama Prodi");
+        tblProdi.setModel(model);
 
-     try {
-         Database db = new Database();
-         // Kondisi "1=1" digunakan agar semua data terpanggil (karena fungsi readDB kamu wajib pakai WHERE)
-         ResultSet rs = (ResultSet) db.readDB("*", "prodi", "1=1");
+        try {
+            Database db = new Database();
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM prodi");
+            while (rs != null && rs.next()) {
+                model.addRow(new Object[]{ rs.getString("id_prodi"), rs.getString("nama_prodi") });
+            }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
+    }
 
-         while (rs != null && rs.next()) {
-             model.addRow(new Object[]{
-                 rs.getString("id_prodi"),
-                 rs.getString("nama_prodi")
-             });
-         }
-     } catch (Exception e) {
-         JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
-     }
- }
- // Method untuk membuat ID otomatis
     private void autoNumber() {
         try {
             Database db = new Database();
-            // Mengambil angka ID paling besar (MAX) dari tabel prodi
-            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("MAX(id_prodi) AS max_id", "prodi", "1=1");
-            
+            java.sql.ResultSet rs = db.readDBSafe("SELECT MAX(id_prodi) AS max_id FROM prodi");
             if (rs != null && rs.next()) {
-                // Ambil angka terbesarnya, lalu tambah 1
                 int idBaru = rs.getInt("max_id") + 1; 
                 txtIdProdi.setText(String.valueOf(idBaru));
             } else {
-                // Jika tabel masih kosong sama sekali, mulai dari angka 1
                 txtIdProdi.setText("1"); 
             }
-            
-            // Kunci textfield ID agar user tidak bisa iseng mengubahnya
             txtIdProdi.setEditable(false); 
-            
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Error Auto Number: " + e.getMessage());
-        }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }
     /**
      * Creates new form PanelProdi
@@ -238,78 +221,41 @@ public class PanelProdi extends javax.swing.JPanel {
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
 String id = txtIdProdi.getText();
-        
-        // LOGIKA INI TIDAK AKAN PERNAH BERJALAN:
-        if (id.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Pilih data di tabel yang ingin dihapus!");
-            return;
+        if (tblProdi.getSelectedRow() == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Pilih data di tabel yang ingin dihapus!"); return;
         }
-
-        int konfirmasi = JOptionPane.showConfirmDialog(this, "Yakin hapus data prodi ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-        
-        if (konfirmasi == JOptionPane.YES_OPTION) {
+        if (javax.swing.JOptionPane.showConfirmDialog(this, "Yakin hapus data prodi ini?", "Konfirmasi", 0) == 0) {
             Database db = new Database();
-            // deleteDB(tabel, kondisi)
-            boolean sukses = db.deleteDB("prodi", "id_prodi = '" + id + "'");
-            
-            if (sukses) {
-                JOptionPane.showMessageDialog(this, "Data berhasil dihapus!");
-                tampilData();
-                btnResetActionPerformed(evt); // Akan error sedikit jika tombol reset belum diklik 2x, lanjut ke langkah terakhir di bawah.
+            if (db.executeDBSafe("DELETE FROM prodi WHERE id_prodi = ?", id)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data berhasil dihapus!");
+                tampilData(); btnResetActionPerformed(evt);
             }
         }
     }//GEN-LAST:event_btnHapusActionPerformed
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
-        if (btnSimpan.getText().equals("Simpan")) {
-    // ---> PASTE SELURUH KODINGAN "SIMPAN" LAMA KAMU DI SINI <---
-            String id = txtIdProdi.getText();
+       String id = txtIdProdi.getText();
         String nama = txtNamaProdi.getText();
-        
         if (id.isEmpty() || nama.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "ID dan Nama Prodi tidak boleh kosong!");
-            return;
+            javax.swing.JOptionPane.showMessageDialog(this, "ID dan Nama Prodi tidak boleh kosong!"); return;
         }
 
         Database db = new Database();
-        // Memanggil createDB: tabel "prodi", kolomnya "id_prodi, nama_prodi", nilainya dari inputan textfield
-        boolean sukses = db.createDB("prodi", "id_prodi, nama_prodi", "'" + id + "', '" + nama + "'");
-        
-        if (sukses) {
-            JOptionPane.showMessageDialog(this, "Data berhasil disimpan!");
-            tampilData(); // Refresh tabel
-            btnResetActionPerformed(evt); // Kosongkan textfield
+        if (btnSimpan.getText().equals("Simpan")) {
+            if (db.executeDBSafe("INSERT INTO prodi (id_prodi, nama_prodi) VALUES (?, ?)", id, nama)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data berhasil disimpan!");
+                tampilData(); btnResetActionPerformed(evt); 
+            }
         } else {
-            JOptionPane.showMessageDialog(this, "Gagal menyimpan data!");
+            if (tblProdi.getSelectedRow() == -1) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Silakan klik data di tabel terlebih dahulu!"); return;
+            }
+            if (db.executeDBSafe("UPDATE prodi SET nama_prodi = ? WHERE id_prodi = ?", nama, id)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data berhasil diubah!");
+                tampilData(); btnResetActionPerformed(evt);
+            }
         }
-} else {
-    // ---> PASTE SELURUH KODINGAN "UBAH" LAMA KAMU DI SINI <---
-    String id = txtIdProdi.getText();
-        String nama = txtNamaProdi.getText();
-
-        // Jika kolom ID MASIH bisa diedit, berarti user belum klik tabel
-
-        if (tblProdi.getSelectedRow() == -1) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Silakan klik data di tabel terlebih dahulu!");
-            return;
-        }
-
-        if (nama.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Nama Prodi tidak boleh kosong!");
-            return;
-        }
-
-        Database db = new Database();
-        boolean sukses = db.updateDB("prodi", "nama_prodi = '" + nama + "'", "id_prodi = '" + id + "'");
-
-        if (sukses) {
-            JOptionPane.showMessageDialog(this, "Data berhasil diubah!");
-            tampilData();
-            btnResetActionPerformed(evt);
-            // Memanggil reset agar kolom ID kembali terbuka
-        }
-}
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void tblProdiMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblProdiMouseClicked
@@ -346,30 +292,17 @@ String id = txtIdProdi.getText();
 
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
         // TODO add your handling code here:
-        String kataKunci = txtCari.getText().trim();
+        String keyword = "%" + txtCari.getText().trim() + "%";
         javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblProdi.getModel();
-        model.setRowCount(0); // Kosongkan tabel dulu
-
+        model.setRowCount(0); 
         try {
             Database db = new Database();
-            // LOGIKA PENCARIAN: Mencari berdasarkan ID Prodi ATAU Nama Prodi
-            String kondisi = "id_prodi LIKE '%" + kataKunci + "%' OR nama_prodi LIKE '%" + kataKunci + "%'";
-            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "prodi", kondisi);
-            
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM prodi WHERE id_prodi LIKE ? OR nama_prodi LIKE ?", keyword, keyword);
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString("id_prodi"),
-                    rs.getString("nama_prodi")
-                });
+                model.addRow(new Object[]{ rs.getString("id_prodi"), rs.getString("nama_prodi") });
             }
-            
-            if (model.getRowCount() == 0) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Data Prodi tidak ditemukan!");
-                tampilData(); // Panggil fungsi tampilData() untuk mereset tabel
-            }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Error Pencarian: " + e.getMessage());
-        }
+            if (model.getRowCount() == 0) tampilData();
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }//GEN-LAST:event_btnCariActionPerformed
 
 

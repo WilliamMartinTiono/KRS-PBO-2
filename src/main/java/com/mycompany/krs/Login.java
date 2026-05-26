@@ -13,7 +13,21 @@ public class Login extends javax.swing.JFrame {
     
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(Login.class.getName());
-    public static String userLogin;
+    private static String userLogin = null;
+    // Fungsi untuk mengambil data (Akses baca saja)
+    public static String getUserLogin() { 
+        return userLogin; 
+    }
+
+    // Fungsi untuk mengisi data saat login
+    public static void setUserLogin(String user) {
+        userLogin = user;
+    }
+
+    // Fungsi sakti untuk membersihkan sesi saat LOGOUT
+    public static void clearSession() { 
+        userLogin = null; 
+    }
     /**
      * Creates new form Login
      */
@@ -152,75 +166,50 @@ public class Login extends javax.swing.JFrame {
     }//GEN-LAST:event_btnResetActionPerformed
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
-        try {
-            // 1. Mengambil data yang diketik user
+       try {
             String username = txtUsername.getText().trim();
             String password = new String(txtPassword.getPassword());
             
-            // PROTEKSI 1: Cek apakah inputan kosong
             if (username.isEmpty() || password.isEmpty()) {
                 javax.swing.JOptionPane.showMessageDialog(this, "Username dan Password tidak boleh kosong!", "Peringatan", javax.swing.JOptionPane.WARNING_MESSAGE);
-                return; // Hentikan proses
-            }
-            
-            // PROTEKSI 2: Anti SQL-Injection Dasar (Menolak tanda kutip)
-            if (username.contains("'") || password.contains("'") || username.contains("\"") || password.contains("\"")) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Karakter tidak valid terdeteksi!", "Peringatan Keamanan", javax.swing.JOptionPane.ERROR_MESSAGE);
-                txtUsername.setText("");
-                txtPassword.setText("");
-                return;
+                return; 
             }
             
             Database db = new Database();
             
-            // 2. Cek kecocokan di tabel pusat akun
-            String kondisiLogin = "username = '" + username + "' AND BINARY password = '" + password + "'";
-            java.sql.ResultSet rsLogin = (java.sql.ResultSet) db.readDB("id_admin", "admin", kondisiLogin);
+            // KUERI AMAN: Cek login menggunakan PreparedStatement
+            String sqlLogin = "SELECT id_admin FROM admin WHERE username = ? AND password = ?";
+            java.sql.ResultSet rsLogin = db.readDBSafe(sqlLogin, username, Database.hashPassword(password));
             
             if (rsLogin != null && rsLogin.next()) {
-                // Jika akun ditemukan, simpan ID-nya
                 String idUser = rsLogin.getString("id_admin");
                 
-                // 3. Cek Role (Hak Akses)
-                java.sql.ResultSet rsMhs = (java.sql.ResultSet) db.readDB("nim", "mahasiswa", "id_user = '" + idUser + "'");
+                // Cek Role Mahasiswa
+                java.sql.ResultSet rsMhs = db.readDBSafe("SELECT nim FROM mahasiswa WHERE id_user = ?", idUser);
                 if (rsMhs != null && rsMhs.next()) {
-                    // --- MENGISI IDENTITAS MAHASISWA ---
-                    userLogin = rsMhs.getString("nim"); 
-                    
+                    setUserLogin(rsMhs.getString("nim")); 
                     javax.swing.JOptionPane.showMessageDialog(this, "Login Berhasil!\nSelamat Datang Mahasiswa.");
-                    MenuUtamaMahasiswa menuMhs = new MenuUtamaMahasiswa();
-                    menuMhs.setVisible(true);
-                    
+                    new MenuUtamaMahasiswa().setVisible(true);
                 } else {
-                    java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn", "dosen", "id_user = '" + idUser + "'");
+                    // Cek Role Dosen
+                    java.sql.ResultSet rsDosen = db.readDBSafe("SELECT nidn FROM dosen WHERE id_user = ?", idUser);
                     if (rsDosen != null && rsDosen.next()) {
-                        // --- MENGISI IDENTITAS DOSEN ---
-                        userLogin = rsDosen.getString("nidn");
-                        
+                        setUserLogin(rsDosen.getString("nidn"));
                         javax.swing.JOptionPane.showMessageDialog(this, "Login Berhasil!\nSelamat Datang Dosen.");
-                        MenuUtamaDosen menuDosen = new MenuUtamaDosen();
-                        menuDosen.setVisible(true);
-                        
+                        new MenuUtamaDosen().setVisible(true);
                     } else {
-                        // --- MENGISI IDENTITAS ADMIN ---
-                        userLogin = username;
-                        
+                        // Role Admin
+                        setUserLogin(username);
                         javax.swing.JOptionPane.showMessageDialog(this, "Login Berhasil!\nSelamat Datang Admin.");
-                        MenuUtamaAdmin menuAdmin = new MenuUtamaAdmin();
-                        menuAdmin.setVisible(true);
+                        new MenuUtamaAdmin().setVisible(true);
                     }
                 }
-                
-                // Cukup SATU dispose() di sini, berlaku untuk siapapun yang berhasil login
                 this.dispose(); 
-                
             } else {
-                // Jika username/password tidak ada di database
                 javax.swing.JOptionPane.showMessageDialog(this, "Username atau Password salah!", "Login Gagal", javax.swing.JOptionPane.ERROR_MESSAGE);
                 txtPassword.setText("");
                 txtPassword.requestFocus();
             }
-            
         } catch (Exception e) {
             javax.swing.JOptionPane.showMessageDialog(this, "Terjadi Kesalahan Database: " + e.getMessage());
         }

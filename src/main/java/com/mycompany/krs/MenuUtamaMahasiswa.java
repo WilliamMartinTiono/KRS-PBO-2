@@ -97,8 +97,8 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(172, 172, 172)
-                    .addComponent(jLabel1)
-                    .addContainerGap(264, Short.MAX_VALUE)))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGap(264, 264, 264)))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -140,20 +140,14 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
         // 1. Munculkan pop-up konfirmasi
-        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this,
-            "Apakah Anda yakin ingin keluar dari aplikasi?",
-            "Konfirmasi Log Out",
-            javax.swing.JOptionPane.YES_NO_OPTION,
-            javax.swing.JOptionPane.QUESTION_MESSAGE);
-
-        // 2. Jika user memilih YES
+        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin ingin keluar?", "Konfirmasi", javax.swing.JOptionPane.YES_NO_OPTION);
         if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
-            // Buka kembali halaman Login
-            Login formLogin = new Login();
-            formLogin.setVisible(true);
-
-            // Tutup halaman Menu Utama Admin ini
-            this.dispose();
+            
+            // ---> BERSIHKAN SESI SEBELUM LOGOUT <---
+            Login.clearSession(); 
+            
+            this.dispose(); // Tutup menu utama
+            new Login().setVisible(true); // Buka kembali layar login
         }
     }//GEN-LAST:event_btnLogoutActionPerformed
 

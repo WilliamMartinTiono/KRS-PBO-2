@@ -12,28 +12,18 @@ import javax.swing.JOptionPane;
  */
 public class PanelMatkul extends javax.swing.JPanel {
 private void tampilData() {
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("Kode MK");
-        model.addColumn("Nama Mata Kuliah");
-        model.addColumn("SKS");
-        model.addColumn("Semester");
+        javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel();
+        model.addColumn("Kode MK"); model.addColumn("Nama Mata Kuliah");
+        model.addColumn("SKS"); model.addColumn("Semester");
         tblMatkul.setModel(model);
 
         try {
             Database db = new Database();
-            ResultSet rs = (ResultSet) db.readDB("*", "mata_kuliah", "1=1");
-            
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM mata_kuliah");
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString("kode_mk"),
-                    rs.getString("nama_mk"),
-                    rs.getString("sks"),
-                    rs.getString("semester")
-                });
+                model.addRow(new Object[]{ rs.getString("kode_mk"), rs.getString("nama_mk"), rs.getString("sks"), rs.getString("semester") });
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
-        }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }
 
 
@@ -223,53 +213,52 @@ private void tampilData() {
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
         
-        if (btnSimpan.getText().equals("Simpan")) {
-    // ---> PASTE SELURUH KODINGAN "SIMPAN" LAMA KAMU DI SINI <---
-    String kode = txtKodeMk.getText();
-        String nama = txtNamaMk.getText();
-        String sks = txtSks.getText();
-        String semester = txtSemester.getText();
+        String kode = txtKodeMk.getText().trim();
+        String nama = txtNamaMk.getText().trim();
+        String sks = txtSks.getText().trim();
+        String semester = txtSemester.getText().trim();
         
+        // 1. CEK KOLOM KOSONG
         if (kode.isEmpty() || nama.isEmpty() || sks.isEmpty() || semester.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Semua kolom harus diisi!");
+            javax.swing.JOptionPane.showMessageDialog(this, "Semua kolom harus diisi!"); return;
+        }
+
+        // 2. CEK SKS DAN SEMESTER HARUS ANGKA (Anti-Error Database)
+        try {
+            Integer.parseInt(sks);
+            Integer.parseInt(semester);
+        } catch (NumberFormatException e) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Gagal! Kolom SKS dan Semester harus diisi dengan Angka Bulat."); 
             return;
         }
 
         Database db = new Database();
-        // Memasukkan 4 nilai sekaligus ke dalam tabel mata_kuliah
-        boolean sukses = db.createDB("mata_kuliah", "kode_mk, nama_mk, sks, semester", 
-                                     "'" + kode + "', '" + nama + "', '" + sks + "', '" + semester + "'");
-        
-        if (sukses) {
-            JOptionPane.showMessageDialog(this, "Data berhasil disimpan!");
-            tampilData(); 
-            btnResetActionPerformed(evt); 
-            } else {
-            // 3. TAMBAHAN: Memberi tahu jika gagal karena error lain
-            JOptionPane.showMessageDialog(this, "Sistem gagal menyimpan data mata kuliah!", "Error", JOptionPane.ERROR_MESSAGE);
-        }
-} else {
-    // ---> PASTE SELURUH KODINGAN "UBAH" LAMA KAMU DI SINI <---
-    String kode = txtKodeMk.getText();
-        String nama = txtNamaMk.getText();
-        String sks = txtSks.getText();
-        String semester = txtSemester.getText();
-        
-        if (txtKodeMk.isEditable()) {
-            JOptionPane.showMessageDialog(this, "Klik data di tabel yang ingin diubah!");
-            return;
-        }
+        if (btnSimpan.getText().equals("Simpan")) {
+            try {
+                // 3. CEK KODE MK DUPLIKAT (Tidak boleh ada kode yang sama persis)
+                java.sql.ResultSet rsCek = db.readDBSafe("SELECT kode_mk FROM mata_kuliah WHERE kode_mk = ?", kode);
+                if (rsCek != null && rsCek.next()) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal! Kode Mata Kuliah '" + kode + "' sudah terdaftar di database."); 
+                    return;
+                }
 
-        Database db = new Database();
-        String nilaiUpdate = "nama_mk = '" + nama + "', sks = '" + sks + "', semester = '" + semester + "'";
-        boolean sukses = db.updateDB("mata_kuliah", nilaiUpdate, "kode_mk = '" + kode + "'");
-        
-        if (sukses) {
-            JOptionPane.showMessageDialog(this, "Data berhasil diubah!");
-            tampilData();
-            btnResetActionPerformed(evt);
+                // JIKA SEMUA AMAN, SIMPAN KE DATABASE
+                if (db.executeDBSafe("INSERT INTO mata_kuliah (kode_mk, nama_mk, sks, semester) VALUES (?, ?, ?, ?)", kode, nama, sks, semester)) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Data berhasil disimpan!");
+                    tampilData(); btnResetActionPerformed(evt); 
+                }
+            } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
+            
+        } else {
+            // MODE UBAH DATA
+            if (txtKodeMk.isEditable()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Klik data di tabel yang ingin diubah!"); return;
+            }
+            if (db.executeDBSafe("UPDATE mata_kuliah SET nama_mk = ?, sks = ?, semester = ? WHERE kode_mk = ?", nama, sks, semester, kode)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data berhasil diubah!");
+                tampilData(); btnResetActionPerformed(evt);
+            }
         }
-}
         
         
     }//GEN-LAST:event_btnSimpanActionPerformed
@@ -296,22 +285,14 @@ private void tampilData() {
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
         String kode = txtKodeMk.getText();
-        
         if (txtKodeMk.isEditable()) {
-            JOptionPane.showMessageDialog(this, "Klik data di tabel yang ingin dihapus!");
-            return;
+            javax.swing.JOptionPane.showMessageDialog(this, "Klik data di tabel yang ingin dihapus!"); return;
         }
-
-        int konfirmasi = JOptionPane.showConfirmDialog(this, "Yakin hapus mata kuliah ini?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-        
-        if (konfirmasi == JOptionPane.YES_OPTION) {
+        if (javax.swing.JOptionPane.showConfirmDialog(this, "Yakin hapus mata kuliah ini?", "Konfirmasi", 0) == 0) {
             Database db = new Database();
-            boolean sukses = db.deleteDB("mata_kuliah", "kode_mk = '" + kode + "'");
-            
-            if (sukses) {
-                JOptionPane.showMessageDialog(this, "Data dihapus!");
-                tampilData();
-                btnResetActionPerformed(evt);
+            if (db.executeDBSafe("DELETE FROM mata_kuliah WHERE kode_mk = ?", kode)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data dihapus!");
+                tampilData(); btnResetActionPerformed(evt);
             }
         }
     }//GEN-LAST:event_btnHapusActionPerformed
@@ -334,32 +315,17 @@ private void tampilData() {
 
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
         // TODO add your handling code here:
-        String kataKunci = txtCari.getText().trim();
+        String keyword = "%" + txtCari.getText().trim() + "%";
         javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblMatkul.getModel();
-        model.setRowCount(0); // Kosongkan tabel dulu
-
+        model.setRowCount(0); 
         try {
             Database db = new Database();
-            // LOGIKA PENCARIAN: Mencari berdasarkan Kode MK ATAU Nama Matkul
-            String kondisi = "kode_mk LIKE '%" + kataKunci + "%' OR nama_mk LIKE '%" + kataKunci + "%'";
-            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "mata_kuliah", kondisi);
-            
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM mata_kuliah WHERE kode_mk LIKE ? OR nama_mk LIKE ?", keyword, keyword);
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString("kode_mk"),
-                    rs.getString("nama_mk"),
-                    rs.getString("sks"),
-                    rs.getString("semester")
-                });
+                model.addRow(new Object[]{ rs.getString("kode_mk"), rs.getString("nama_mk"), rs.getString("sks"), rs.getString("semester") });
             }
-            
-            if (model.getRowCount() == 0) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Data Mata Kuliah tidak ditemukan!");
-                tampilData(); // Panggil fungsi tampilData() untuk mereset tabel
-            }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Error Pencarian: " + e.getMessage());
-        }
+            if (model.getRowCount() == 0) tampilData();
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }//GEN-LAST:event_btnCariActionPerformed
 
 

@@ -15,26 +15,20 @@ public class PanelPeriode extends javax.swing.JPanel {
 
     private void tampilData() {
         javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel();
-        model.addColumn("ID Periode");
-        model.addColumn("Tahun Ajaran");
-        model.addColumn("Semester");
-        model.addColumn("Status KRS");
+        model.addColumn("ID Periode"); model.addColumn("Tahun Ajaran");
+        model.addColumn("Semester"); model.addColumn("Status KRS");
         tblPeriode.setModel(model);
 
         try {
             Database db = new Database();
-            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "periode", "1=1 ORDER BY id_periode DESC");
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM periode ORDER BY id_periode DESC");
             while (rs != null && rs.next()) {
                 model.addRow(new Object[]{
-                    rs.getString("id_periode"),
-                    rs.getString("tahun_ajaran"),
-                    rs.getString("semester"),
-                    rs.getString("status_krs")
+                    rs.getString("id_periode"), rs.getString("tahun_ajaran"),
+                    rs.getString("semester"), rs.getString("status_krs")
                 });
             }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
-        }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }
     /**
      * Creates new form PanelPeriode
@@ -194,31 +188,44 @@ public class PanelPeriode extends javax.swing.JPanel {
 
         Database db = new Database();
         try {
-            // LOGIKA KOMPLEKS: Jika status yang diinput adalah "Buka"
-            // Maka kita harus mengubah semua data periode lain menjadi "Tutup" terlebih dahulu
-            if (status.equals("Buka")) {
-                db.updateDB("periode", "status_krs = 'Tutup'", "1=1"); // Ubah semua jadi Tutup
+            // 1. MULAI TRANSAKSI
+            if (!db.beginTransaction()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Gagal memulai transaksi database!");
+                return;
             }
 
-            if (btnSimpan.getText().equals("Simpan")) {
-                // LOGIKA INSERT BARU (Tidak perlu insert id_periode karena Auto-Increment)
-                String kolom = "tahun_ajaran, semester, status_krs";
-                String nilai = "'" + tahun + "', '" + semester + "', '" + status + "'";
-                
-                if (db.createDB("periode", kolom, nilai)) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "Periode Akademik Berhasil Ditambahkan!");
-                    btnResetActionPerformed(evt);
-                }
-            } else {
-                // LOGIKA UBAH DATA
-                String nilaiUpdate = "tahun_ajaran = '" + tahun + "', semester = '" + semester + "', status_krs = '" + status + "'";
-                if (db.updateDB("periode", nilaiUpdate, "id_periode = '" + idPeriodeTerpilih + "'")) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "Periode Akademik Berhasil Diperbarui!");
-                    btnResetActionPerformed(evt);
-                }
+            // 2. TUTUP PERIODE LAMA JIKA PERIODE BARU DIBUKA
+            if (status.equals("Buka")) {
+                db.executeDBSafe("UPDATE periode SET status_krs = 'Tutup'"); 
             }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+
+            boolean isSuccess = false;
+
+            // 3. SIMPAN ATAU UBAH DATA PERIODE
+            if (btnSimpan.getText().equals("Simpan")) {
+                String sql = "INSERT INTO periode (tahun_ajaran, semester, status_krs) VALUES (?, ?, ?)";
+                isSuccess = db.executeDBSafe(sql, tahun, semester, status);
+            } else {
+                String sql = "UPDATE periode SET tahun_ajaran = ?, semester = ?, status_krs = ? WHERE id_periode = ?";
+                isSuccess = db.executeDBSafe(sql, tahun, semester, status, idPeriodeTerpilih);
+            }
+
+            // 4. JIKA SEMUA BERHASIL, SIMPAN PERMANEN (COMMIT)
+            if (isSuccess) {
+                db.commit();
+                javax.swing.JOptionPane.showMessageDialog(this, 
+                    btnSimpan.getText().equals("Simpan") ? "Periode Berhasil Ditambahkan!" : "Periode Berhasil Diperbarui!"
+                );
+                btnResetActionPerformed(evt);
+            } else {
+                // JIKA GAGAL INSERT/UPDATE, BATALKAN SEMUA TERMASUK UPDATE STATUS TUTUP
+                db.rollback();
+                javax.swing.JOptionPane.showMessageDialog(this, "Gagal menyimpan periode. Data dibatalkan.");
+            }
+        } catch (Exception e) { 
+            db.rollback(); // Jika terjadi error sistem, batalkan semua
+            System.err.println("Terjadi Error: " + e.getMessage()); 
+            javax.swing.JOptionPane.showMessageDialog(this, "Terjadi Error sistem, perubahan dibatalkan!");
         }
     }//GEN-LAST:event_btnSimpanActionPerformed
 
@@ -236,15 +243,11 @@ int baris = tblPeriode.getSelectedRow();
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
-        if (idPeriodeTerpilih.isEmpty()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Pilih data di tabel yang ingin dihapus!");
-            return;
-        }
-
-        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin ingin menghapus periode ini?\nJika dihapus, semua data KRS pada periode ini mungkin akan terpengaruh!", "Konfirmasi", javax.swing.JOptionPane.YES_NO_OPTION);
+        if (idPeriodeTerpilih.isEmpty()) return;
+        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin hapus?", "Konfirmasi", javax.swing.JOptionPane.YES_NO_OPTION);
         if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
             Database db = new Database();
-            if (db.deleteDB("periode", "id_periode = '" + idPeriodeTerpilih + "'")) {
+            if (db.executeDBSafe("DELETE FROM periode WHERE id_periode = ?", idPeriodeTerpilih)) {
                 javax.swing.JOptionPane.showMessageDialog(this, "Periode berhasil dihapus!");
                 btnResetActionPerformed(evt);
             }

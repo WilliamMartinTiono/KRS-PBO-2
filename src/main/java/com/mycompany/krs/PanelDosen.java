@@ -14,40 +14,29 @@ public class PanelDosen extends javax.swing.JPanel {
 private void loadComboBox() {
         try {
             Database db = new Database();
-            // Hanya mengisi combobox Prodi
-            java.sql.ResultSet rsProdi = (java.sql.ResultSet) db.readDB("id_prodi, nama_prodi", "prodi", "1=1");
+            java.sql.ResultSet rs = db.readDBSafe("SELECT id_prodi, nama_prodi FROM prodi");
             cbProdi.removeAllItems();
-            while (rsProdi != null && rsProdi.next()) {
-                cbProdi.addItem(rsProdi.getString("id_prodi") + " - " + rsProdi.getString("nama_prodi"));
+            while (rs != null && rs.next()) {
+                cbProdi.addItem(rs.getString("id_prodi") + " - " + rs.getString("nama_prodi"));
             }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal memuat pilihan: " + e.getMessage());
-        }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }
 
     private void tampilData() {
-        DefaultTableModel model = new DefaultTableModel();
-        model.addColumn("NIDN");
-        model.addColumn("Nama Dosen");
-        model.addColumn("ID Prodi");
-        model.addColumn("ID User");
+        javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel();
+        model.addColumn("NIDN"); model.addColumn("Nama Dosen");
+        model.addColumn("ID Prodi"); model.addColumn("ID User");
         tblDosen.setModel(model);
-
         try {
             Database db = new Database();
-            ResultSet rs = (ResultSet) db.readDB("*", "dosen", "1=1");
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM dosen");
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString("nidn"),
-                    rs.getString("nama_dosen"),
-                    rs.getString("id_prodi"),
-                    rs.getString("id_user")
-                });
+                model.addRow(new Object[]{ rs.getString("nidn"), rs.getString("nama_dosen"), rs.getString("id_prodi"), rs.getString("id_user") });
             }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Gagal memuat data: " + e.getMessage());
-        }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }
+    
+    
     /**
      * Creates new form PanelDosen
      */
@@ -147,6 +136,11 @@ private void loadComboBox() {
 
         jLabel5.setText("Filter :");
 
+        txtFilterProdi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                txtFilterProdiActionPerformed(evt);
+            }
+        });
         txtFilterProdi.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyReleased(java.awt.event.KeyEvent evt) {
                 txtFilterProdiKeyReleased(evt);
@@ -242,100 +236,56 @@ private void loadComboBox() {
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:String nidn = txtNidn.getText();
-        // PROTEKSI AWAL: Mencegah NullPointerException jika dropdown Prodi kosong
+        if (cbProdi.getSelectedItem() == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Data Prodi belum tersedia!"); return;
+        }
+
+        String nidn = txtNidn.getText();
+        String nama = txtNamaDosen.getText();
+        String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
+        if (nidn.isEmpty() || nama.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "NIDN dan Nama harus diisi!"); return;
+        }
+
+        Database db = new Database();
         if (btnSimpan.getText().equals("Simpan")) {
-    // ---> PASTE SELURUH KODINGAN "SIMPAN" LAMA KAMU DI SINI <---
-   if (cbProdi.getSelectedItem() == null) {
-        javax.swing.JOptionPane.showMessageDialog(this, "Data Prodi belum tersedia! Silakan isi Data Prodi terlebih dahulu.");
-        return;
-    }
-
-    String nidn = txtNidn.getText();
-    String nama = txtNamaDosen.getText();
-    String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
-    
-    if (nidn.isEmpty() || nama.isEmpty()) {
-        javax.swing.JOptionPane.showMessageDialog(this, "NIDN dan Nama harus diisi!");
-        return;
-    }
-
-    Database db = new Database();
-    try {
-        // STEP 1: Cek apakah NIDN sudah terdaftar sebagai akun
-        java.sql.ResultSet rsCek = (java.sql.ResultSet) db.readDB("username", "admin", "username = '" + nidn + "'");
-        if (rsCek != null && rsCek.next()) {
-            javax.swing.JOptionPane.showMessageDialog(this, "NIDN ini sudah memiliki akun di sistem!");
-            return;
-        }
-
-        // STEP 2: Bikin akun Dosen otomatis (Username = NIDN, Password = NIDN)
-        boolean akunOk = db.createDB("admin", "username, password", "'" + nidn + "', '" + nidn + "'");
-        
-        if (akunOk) {
-            // STEP 3: Ambil ID Admin dari akun yang baru dibuat
-            java.sql.ResultSet rsId = (java.sql.ResultSet) db.readDB("id_admin", "admin", "username = '" + nidn + "'");
-            if (rsId != null && rsId.next()) {
-                String idBaru = rsId.getString("id_admin");
-                
-                // STEP 4: Simpan data ke tabel Dosen
-                String kolom = "nidn, nama_dosen, id_prodi, id_user";
-                String nilai = "'" + nidn + "', '" + nama + "', '" + idProdi + "', '" + idBaru + "'";
-                
-                if (db.createDB("dosen", kolom, nilai)) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "Data Dosen & Akun Otomatis Berhasil Dibuat!\nUsername: " + nidn + "\nPassword: " + nidn);
-                    tampilData();
-                    btnResetActionPerformed(evt);
-                } else {
-                    // ROLLBACK: Hapus akun admin jika gagal masuk ke tabel dosen
-                    db.deleteDB("admin", "id_admin = '" + idBaru + "'");
-                    javax.swing.JOptionPane.showMessageDialog(this, "GAGAL menyimpan data ke tabel Dosen!");
+            try {
+                java.sql.ResultSet rsCek = db.readDBSafe("SELECT username FROM admin WHERE username = ?", nidn);
+                if (rsCek != null && rsCek.next()) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "NIDN ini sudah memiliki akun!"); return;
                 }
+
+                int idBaru = db.insertAndGetId("INSERT INTO admin (username, password) VALUES (?, ?)", nidn, Database.hashPassword(nidn));
+                if (idBaru != -1) {
+                    if (db.executeDBSafe("INSERT INTO dosen (nidn, nama_dosen, id_prodi, id_user) VALUES (?, ?, ?, ?)", nidn, nama, idProdi, idBaru)) {
+                        javax.swing.JOptionPane.showMessageDialog(this, "Data Dosen & Akun Berhasil Dibuat!");
+                        tampilData(); btnResetActionPerformed(evt);
+                    } else {
+                        db.executeDBSafe("DELETE FROM admin WHERE id_admin = ?", idBaru);
+                    }
+                }
+            } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
+        } else {
+            if (tblDosen.getSelectedRow() == -1) return;
+            if (db.executeDBSafe("UPDATE dosen SET nama_dosen = ?, id_prodi = ? WHERE nidn = ?", nama, idProdi, nidn)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data dosen berhasil diubah!");
+                tampilData(); btnResetActionPerformed(evt);
             }
-        }
-    } catch (Exception e) {
-        javax.swing.JOptionPane.showMessageDialog(this, "Error Sistem: " + e.getMessage());
-    }
-} else {
-    // ---> PASTE SELURUH KODINGAN "UBAH" LAMA KAMU DI SINI <---if (cbProdi.getSelectedItem() == null) {
-        javax.swing.JOptionPane.showMessageDialog(this, "Data Prodi belum tersedia!");
-        return;
-    }
-
-    String nidn = txtNidn.getText();
-    String nama = txtNamaDosen.getText();
-    String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
-    
-    // Gunakan getSelectedRow() seperti panel lain agar pasti dan konsisten
-    if (tblDosen.getSelectedRow() == -1) {
-        javax.swing.JOptionPane.showMessageDialog(this, "Pilih data di tabel yang mau diubah!"); 
-        return;
-    }
-
-    Database db = new Database();
-    String nilaiUpdate = "nama_dosen = '" + nama + "', id_prodi = '" + idProdi + "'";
-    
-    if (db.updateDB("dosen", nilaiUpdate, "nidn = '" + nidn + "'")) {
-        javax.swing.JOptionPane.showMessageDialog(this, "Data dosen berhasil diubah!");
-        tampilData(); 
-        btnResetActionPerformed(evt);
-    } else {
-        javax.swing.JOptionPane.showMessageDialog(this, "Gagal mengubah data dosen!");
-    }        
+        }  
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
         // TODO add your handling code here:
-        txtFilterProdi.setText(""); 
-
-        // Panggil ulang semua isinya
-        loadComboBox();
-        tampilData();
-        txtCari.setText("");
-       txtNidn.setText("");
+        txtNidn.setText("");
         txtNamaDosen.setText("");
+        txtCari.setText("");
+        txtFilterProdi.setText("");
+        txtNidn.setEditable(true);
         if (cbProdi.getItemCount() > 0) cbProdi.setSelectedIndex(0);
         
-        txtNidn.setEditable(true);
+        // ---> TAMBAHKAN BARIS INI: Kembalikan tombol ke mode Simpan
+        btnSimpan.setText("Simpan"); 
+        
         txtNidn.requestFocus();
     }//GEN-LAST:event_btnResetActionPerformed
 
@@ -361,68 +311,36 @@ private void loadComboBox() {
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
-        int baris = tblDosen.getSelectedRow();
-    if (baris == -1) {
-        javax.swing.JOptionPane.showMessageDialog(this, "Pilih data di tabel yang mau dihapus!");
-        return;
-    }
+     int baris = tblDosen.getSelectedRow();
+        if (baris == -1) return;
 
-    String nidn = txtNidn.getText();
-    
-    // PROTEKSI NULL: Cek dengan aman apakah kolom id_user ada isinya atau kosong
-    Object idObj = tblDosen.getValueAt(baris, 3);
-    String idUser = (idObj != null) ? idObj.toString() : ""; 
+        String nidn = txtNidn.getText();
+        Object idObj = tblDosen.getValueAt(baris, 3);
+        String idUser = (idObj != null) ? idObj.toString() : ""; 
 
-    int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Menghapus Dosen juga akan menghapus Akun Loginnya. Lanjutkan?", "Konfirmasi Hapus", javax.swing.JOptionPane.YES_NO_OPTION);
-    
-    if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
-        Database db = new Database();
-        
-        // Hapus data dari tabel dosen terlebih dahulu
-        if (db.deleteDB("dosen", "nidn = '" + nidn + "'")) {
-            
-            // Hanya hapus akun admin JIKA idUser tidak kosong
-            if (!idUser.isEmpty()) {
-                db.deleteDB("admin", "id_admin = '" + idUser + "'");
+        if (javax.swing.JOptionPane.showConfirmDialog(this, "Yakin Hapus?", "Konfirmasi", 0) == 0) {
+            Database db = new Database();
+            if (db.executeDBSafe("DELETE FROM dosen WHERE nidn = ?", nidn)) {
+                if (!idUser.isEmpty()) db.executeDBSafe("DELETE FROM admin WHERE id_admin = ?", idUser);
+                javax.swing.JOptionPane.showMessageDialog(this, "Data Dosen dihapus!");
+                tampilData(); btnResetActionPerformed(evt);
             }
-            
-            javax.swing.JOptionPane.showMessageDialog(this, "Data Dosen berhasil dihapus!");
-            tampilData();
-            btnResetActionPerformed(evt);
-        } else {
-            javax.swing.JOptionPane.showMessageDialog(this, "Gagal menghapus data!");
         }
-    }
     }//GEN-LAST:event_btnHapusActionPerformed
 
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
         // TODO add your handling code here:
-        String kataKunci = txtCari.getText().trim();
+      String keyword = "%" + txtCari.getText().trim() + "%";
         javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblDosen.getModel();
-        model.setRowCount(0); // Kosongkan tabel dulu
-
+        model.setRowCount(0); 
         try {
             Database db = new Database();
-            // LOGIKA PENCARIAN: Mencari berdasarkan NIDN ATAU Nama Dosen
-            String kondisi = "nidn LIKE '%" + kataKunci + "%' OR nama_dosen LIKE '%" + kataKunci + "%'";
-            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "dosen", kondisi);
-            
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM dosen WHERE nidn LIKE ? OR nama_dosen LIKE ?", keyword, keyword);
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{
-                    rs.getString("nidn"),
-                    rs.getString("nama_dosen"),
-                    rs.getString("id_prodi"),
-                    rs.getString("id_user")
-                });
+                model.addRow(new Object[]{ rs.getString("nidn"), rs.getString("nama_dosen"), rs.getString("id_prodi"), rs.getString("id_user") });
             }
-            
-            if (model.getRowCount() == 0) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Data Dosen tidak ditemukan!");
-                tampilData(); // Panggil fungsi tampilData() untuk mereset tabel
-            }
-        } catch (Exception e) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Error Pencarian: " + e.getMessage());
-        }
+            if (model.getRowCount() == 0) tampilData();
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }//GEN-LAST:event_btnCariActionPerformed
 
     private void txtFilterProdiKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFilterProdiKeyReleased
@@ -430,9 +348,11 @@ private void loadComboBox() {
         String filter = txtFilterProdi.getText().trim();
         try {
             Database db = new Database();
-            // Cari prodi yang namanya mengandung huruf yang diketik
-            String kondisi = "nama_prodi LIKE '%" + filter + "%'";
-            java.sql.ResultSet rsProdi = (java.sql.ResultSet) db.readDB("id_prodi, nama_prodi", "prodi", kondisi);
+            
+            // ➡️ SEKARANG MENGGUNAKAN KUERI BARU YANG AMAN (PreparedStatement)
+            String sql = "SELECT id_prodi, nama_prodi FROM prodi WHERE nama_prodi LIKE ?";
+            String param = "%" + filter + "%";
+            java.sql.ResultSet rsProdi = db.readDBSafe(sql, param);
             
             cbProdi.removeAllItems(); // Bersihkan combobox prodi
             
@@ -444,6 +364,10 @@ private void loadComboBox() {
             System.out.println("Error Filter Prodi: " + e.getMessage());
         }
     }//GEN-LAST:event_txtFilterProdiKeyReleased
+
+    private void txtFilterProdiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtFilterProdiActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtFilterProdiActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

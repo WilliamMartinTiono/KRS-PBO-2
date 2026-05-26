@@ -14,15 +14,15 @@ public class PanelMahasiswa extends javax.swing.JPanel {
 private void loadComboBox() {
         try {
             Database db = new Database();
-            // 1. Isi combobox Prodi
-            java.sql.ResultSet rsProdi = (java.sql.ResultSet) db.readDB("id_prodi, nama_prodi", "prodi", "1=1");
+            // 1. Isi combobox Prodi (KUERI BARU AMAN)
+            java.sql.ResultSet rsProdi = db.readDBSafe("SELECT id_prodi, nama_prodi FROM prodi");
             cbProdi.removeAllItems();
             while (rsProdi != null && rsProdi.next()) {
                 cbProdi.addItem(rsProdi.getString("id_prodi") + " - " + rsProdi.getString("nama_prodi"));
             }
 
-            // 2. Isi combobox Dosen Wali (Ambil dari NIDN Dosen)
-            java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn, nama_dosen", "dosen", "1=1");
+            // 2. Isi combobox Dosen Wali (KUERI BARU AMAN)
+            java.sql.ResultSet rsDosen = db.readDBSafe("SELECT nidn, nama_dosen FROM dosen");
             cbDosenWali.removeAllItems();
             while (rsDosen != null && rsDosen.next()) {
                 cbDosenWali.addItem(rsDosen.getString("nidn") + " - " + rsDosen.getString("nama_dosen"));
@@ -45,11 +45,12 @@ private void loadComboBox() {
 
         try {
             Database db = new Database();
-            java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "mahasiswa", "1=1");
+            // KUERI BARU AMAN
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM mahasiswa");
             while (rs != null && rs.next()) {
                 model.addRow(new Object[]{
                     rs.getString("nim"),
-                    rs.getString("nama_mhs"), // Menggunakan nama_mhs sesuai databasemu
+                    rs.getString("nama_mhs"),
                     rs.getString("alamat"),
                     rs.getString("id_prodi"),
                     rs.getString("id_dosen_wali"),
@@ -301,89 +302,71 @@ private void loadComboBox() {
         // TODO add your handling code here:
 // PROTEKSI AWAL: Mencegah NullPointerException jika dropdown kosong
 
-if (btnSimpan.getText().equals("Simpan")) {
-    // ---> PASTE SELURUH KODINGAN "SIMPAN" LAMA KAMU DI SINI <---
-    if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) {
-        JOptionPane.showMessageDialog(this, "Data Prodi atau Dosen Wali belum tersedia! Silakan isi Data Prodi dan Dosen terlebih dahulu.");
-        return;
-    }
-
-    String nim = txtNim.getText();
-    String nama = txtNamaMhs.getText();
-    String alamat = txtAlamat.getText();
-    String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
-    String idDosen = cbDosenWali.getSelectedItem().toString().split(" - ")[0];
-
-    if (nim.isEmpty() || nama.isEmpty() || alamat.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Semua data harus diisi!");
-        return;
-    }
-
-    Database db = new Database();
-    try {
-        ResultSet rsCek = (ResultSet) db.readDB("username", "admin", "username = '" + nim + "'");
-        if (rsCek != null && rsCek.next()) {
-            JOptionPane.showMessageDialog(this, "NIM ini sudah memiliki akun!");
+if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Data Prodi atau Dosen Wali belum tersedia!");
             return;
         }
 
-        boolean akunOk = db.createDB("admin", "username, password", "'" + nim + "', '" + nim + "'");
-        
-        if (akunOk) {
-            ResultSet rsId = (ResultSet) db.readDB("id_admin", "admin", "username = '" + nim + "'");
-            if (rsId != null && rsId.next()) {
-                String idBaru = rsId.getString("id_admin");
+        String nim = txtNim.getText().trim();
+        String nama = txtNamaMhs.getText().trim();
+        String alamat = txtAlamat.getText().trim();
+        String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
+        String idDosen = cbDosenWali.getSelectedItem().toString().split(" - ")[0];
 
-                String kolomMhs = "nim, nama_mhs, alamat, id_prodi, id_dosen_wali, id_user";
-                String nilaiMhs = "'" + nim + "', '" + nama + "', '" + alamat + "', '" + idProdi + "', '" + idDosen + "', '" + idBaru + "'";
-                
-                if (db.createDB("mahasiswa", kolomMhs, nilaiMhs)) {
-                    JOptionPane.showMessageDialog(this, "Mahasiswa & Akun Otomatis Berhasil Dibuat!\nUsername: " + nim + "\nPassword: " + nim);
-                    tampilData();
-                    btnResetActionPerformed(evt);
-                } else {
-                    // ROLLBACK: Cegah adanya akun sampah jika gagal tersimpan di tabel mahasiswa
-                    db.deleteDB("admin", "id_admin = '" + idBaru + "'");
-                    JOptionPane.showMessageDialog(this, "GAGAL menyimpan data ke tabel Mahasiswa!");
+        if (nim.isEmpty() || nama.isEmpty() || alamat.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Semua data harus diisi!");
+            return;
+        }
+
+        Database db = new Database();
+        
+        if (btnSimpan.getText().equals("Simpan")) {
+            try {
+                // Cek NIM duplikat
+                java.sql.ResultSet rsCek = db.readDBSafe("SELECT username FROM admin WHERE username = ?", nim);
+                if (rsCek != null && rsCek.next()) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "NIM ini sudah memiliki akun!");
+                    return;
                 }
+
+                // Insert ke tabel admin dan DAPATKAN id_admin-nya secara instan
+                String sqlAdmin = "INSERT INTO admin (username, password) VALUES (?, ?)";
+                int idBaru = db.insertAndGetId(sqlAdmin, nim, Database.hashPassword(nim));
+                
+                if (idBaru != -1) {
+                    // Insert ke tabel mahasiswa menggunakan ID yang didapat
+                    String sqlMhs = "INSERT INTO mahasiswa (nim, nama_mhs, alamat, id_prodi, id_dosen_wali, id_user) VALUES (?, ?, ?, ?, ?, ?)";
+                    if (db.executeDBSafe(sqlMhs, nim, nama, alamat, idProdi, idDosen, idBaru)) {
+                        javax.swing.JOptionPane.showMessageDialog(this, "Mahasiswa & Akun Otomatis Berhasil Dibuat!\nUsername: " + nim + "\nPassword: (Sama dengan NIM)");
+                        tampilData();
+                        btnResetActionPerformed(evt);
+                    } else {
+                        // ROLLBACK (Hapus akun jika gagal input mahasiswa)
+                        db.executeDBSafe("DELETE FROM admin WHERE id_admin = ?", idBaru);
+                        javax.swing.JOptionPane.showMessageDialog(this, "GAGAL menyimpan data ke tabel Mahasiswa!");
+                    }
+                } else {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal membuat akun login!");
+                }
+            } catch (Exception e) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Error Sistem: " + e.getMessage());
+            }
+        } else {
+            // Mode Ubah
+            if (tblMahasiswa.getSelectedRow() == -1) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih data mahasiswa di tabel dulu!"); 
+                return;
+            }
+
+            String sqlUpdate = "UPDATE mahasiswa SET nama_mhs = ?, alamat = ?, id_prodi = ?, id_dosen_wali = ? WHERE nim = ?";
+            if (db.executeDBSafe(sqlUpdate, nama, alamat, idProdi, idDosen, nim)) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data mahasiswa berhasil diperbarui!");
+                tampilData(); 
+                btnResetActionPerformed(evt); 
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Gagal memperbarui data!");
             }
         }
-    } catch (Exception e) {
-        JOptionPane.showMessageDialog(this, "Error Sistem: " + e.getMessage());
-    }
-} else {
-    // ---> PASTE SELURUH KODINGAN "UBAH" LAMA KAMU DI SINI <---if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) {
-        JOptionPane.showMessageDialog(this, "Data Prodi atau Dosen Wali belum tersedia!");
-        return;
-    }
-
-    String nim = txtNim.getText();
-    String nama = txtNamaMhs.getText();
-    String alamat = txtAlamat.getText();
-    String idProdi = cbProdi.getSelectedItem().toString().split(" - ")[0];
-    String idDosen = cbDosenWali.getSelectedItem().toString().split(" - ")[0];
-    
-    // Ganti proteksi isEditable menggunakan getSelectedRow agar lebih pasti
-    if (tblMahasiswa.getSelectedRow() == -1) {
-        javax.swing.JOptionPane.showMessageDialog(this, "Silakan pilih data mahasiswa di tabel dulu!"); 
-        return;
-    }
-
-    if (nama.isEmpty() || alamat.isEmpty()) {
-        JOptionPane.showMessageDialog(this, "Nama dan Alamat tidak boleh kosong!");
-        return;
-    }
-
-    Database db = new Database();
-    String nilaiUpdate = "nama_mhs = '" + nama + "', alamat = '" + alamat + "', id_prodi = '" + idProdi + "', id_dosen_wali = '" + idDosen + "'";
-    
-    if (db.updateDB("mahasiswa", nilaiUpdate, "nim = '" + nim + "'")) {
-        javax.swing.JOptionPane.showMessageDialog(this, "Data mahasiswa berhasil diperbarui!");
-        tampilData(); 
-        btnResetActionPerformed(evt); 
-    } else {
-        javax.swing.JOptionPane.showMessageDialog(this, "Gagal memperbarui data!");
-    }
 
     
     }//GEN-LAST:event_btnSimpanActionPerformed
@@ -424,34 +407,33 @@ if (btnSimpan.getText().equals("Simpan")) {
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
        int baris = tblMahasiswa.getSelectedRow();
-    if (baris == -1) {
-        JOptionPane.showMessageDialog(this, "Pilih data di tabel yang ingin dihapus!");
-        return;
-    }
-
-    String nim = txtNim.getText();
-    
-    // PROTEKSI NULL: Mengamankan id_user jika datanya kosong di database (seperti data Hendro)
-    Object idObj = tblMahasiswa.getValueAt(baris, 5);
-    String idUser = (idObj != null) ? idObj.toString() : ""; 
-
-    int konfirmasi = JOptionPane.showConfirmDialog(this, "Menghapus Mahasiswa akan menghapus Akun Loginnya juga. Lanjutkan?", "Konfirmasi", JOptionPane.YES_NO_OPTION);
-    
-    if (konfirmasi == JOptionPane.YES_OPTION) {
-        Database db = new Database();
-        
-        if (db.deleteDB("mahasiswa", "nim = '" + nim + "'")) {
-            // Hanya hapus akun admin JIKA idUser tidak kosong
-            if (!idUser.isEmpty()) {
-                db.deleteDB("admin", "id_admin = '" + idUser + "'");
-            }
-            JOptionPane.showMessageDialog(this, "Data Mahasiswa berhasil dihapus!");
-            tampilData();
-            btnResetActionPerformed(evt);
-        } else {
-            JOptionPane.showMessageDialog(this, "Gagal menghapus data Mahasiswa!");
+        if (baris == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Pilih data di tabel yang ingin dihapus!");
+            return;
         }
-    }
+
+        String nim = txtNim.getText();
+        Object idObj = tblMahasiswa.getValueAt(baris, 5);
+        String idUser = (idObj != null) ? idObj.toString() : ""; 
+
+        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Menghapus Mahasiswa akan menghapus Akun Loginnya juga. Lanjutkan?", "Konfirmasi", javax.swing.JOptionPane.YES_NO_OPTION);
+        
+        if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
+            Database db = new Database();
+            
+            // Hapus mahasiswa terlebih dahulu
+            if (db.executeDBSafe("DELETE FROM mahasiswa WHERE nim = ?", nim)) {
+                // Kemudian Hapus akun admin
+                if (!idUser.isEmpty()) {
+                    db.executeDBSafe("DELETE FROM admin WHERE id_admin = ?", idUser);
+                }
+                javax.swing.JOptionPane.showMessageDialog(this, "Data Mahasiswa berhasil dihapus!");
+                tampilData();
+                btnResetActionPerformed(evt);
+            } else {
+                javax.swing.JOptionPane.showMessageDialog(this, "Gagal menghapus data Mahasiswa!");
+            }
+        }
     }//GEN-LAST:event_btnHapusActionPerformed
 
     private void btnResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnResetActionPerformed
@@ -487,53 +469,40 @@ if (btnSimpan.getText().equals("Simpan")) {
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
         // TODO add your handling code here:
         String kataKunci = txtCari.getText().trim();
-    javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblMahasiswa.getModel();
-    model.setRowCount(0); // Kosongkan tabel dulu
+        javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblMahasiswa.getModel();
+        model.setRowCount(0);
 
-    try {
-        Database db = new Database();
-        // LOGIKA PENCARIAN SQL: Mencari berdasarkan NIM ATAU Nama
-        String kondisi = "nim LIKE '%" + kataKunci + "%' OR nama_mhs LIKE '%" + kataKunci + "%'";
-        java.sql.ResultSet rs = (java.sql.ResultSet) db.readDB("*", "mahasiswa", kondisi);
+        try {
+            Database db = new Database();
+            String param = "%" + kataKunci + "%";
+            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM mahasiswa WHERE nim LIKE ? OR nama_mhs LIKE ?", param, param);
 
-        while (rs != null && rs.next()) {
-            model.addRow(new Object[]{
-                rs.getString("nim"),
-                rs.getString("nama_mhs"),
-                rs.getString("alamat"),
-                rs.getString("id_prodi"),
-                rs.getString("id_dosen_wali"),
-                rs.getString("id_user")
-            });
-        }
+            while (rs != null && rs.next()) {
+                model.addRow(new Object[]{
+                    rs.getString("nim"), rs.getString("nama_mhs"), rs.getString("alamat"),
+                    rs.getString("id_prodi"), rs.getString("id_dosen_wali"), rs.getString("id_user")
+                });
+            }
 
-        if (model.getRowCount() == 0) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Data tidak ditemukan!");
-            tampilData(); // Panggil fungsi tampilData() lama untuk mereset tabel
-        }
-    } catch (Exception e) {
-        javax.swing.JOptionPane.showMessageDialog(this, "Error Pencarian: " + e.getMessage());
-    }
+            if (model.getRowCount() == 0) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data tidak ditemukan!");
+                tampilData();
+            }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
+    
     }//GEN-LAST:event_btnCariActionPerformed
 
     private void txtFilterDosenKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFilterDosenKeyReleased
         // TODO add your handling code here:
         String filter = txtFilterDosen.getText().trim();
-    try {
-        Database db = new Database();
-        // Ambil data dosen yang namanya mengandung huruf yang diketik
-        String kondisi = "nama_dosen LIKE '%" + filter + "%'";
-        java.sql.ResultSet rsDosen = (java.sql.ResultSet) db.readDB("nidn, nama_dosen", "dosen", kondisi);
-
-        cbDosenWali.removeAllItems(); // Bersihkan combobox
-
-        while (rsDosen != null && rsDosen.next()) {
-            // Masukkan kembali hasil saringan ke combobox
-            cbDosenWali.addItem(rsDosen.getString("nidn") + " - " + rsDosen.getString("nama_dosen"));
-        }
-    } catch (Exception e) {
-        System.out.println("Error Filter: " + e.getMessage());
-    }
+        try {
+            Database db = new Database();
+            java.sql.ResultSet rsDosen = db.readDBSafe("SELECT nidn, nama_dosen FROM dosen WHERE nama_dosen LIKE ?", "%" + filter + "%");
+            cbDosenWali.removeAllItems();
+            while (rsDosen != null && rsDosen.next()) {
+                cbDosenWali.addItem(rsDosen.getString("nidn") + " - " + rsDosen.getString("nama_dosen"));
+            }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }//GEN-LAST:event_txtFilterDosenKeyReleased
 
     private void txtFilterProdiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtFilterProdiActionPerformed
@@ -541,21 +510,15 @@ if (btnSimpan.getText().equals("Simpan")) {
     }//GEN-LAST:event_txtFilterProdiActionPerformed
 
     private void txtFilterProdiKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFilterProdiKeyReleased
-        // TODO add your handling code here:
-        String filter = txtFilterProdi.getText().trim();
+       String filter = txtFilterProdi.getText().trim();
         try {
             Database db = new Database();
-            String kondisi = "nama_prodi LIKE '%" + filter + "%'";
-            java.sql.ResultSet rsProdi = (java.sql.ResultSet) db.readDB("id_prodi, nama_prodi", "prodi", kondisi);
-            
-            cbProdi.removeAllItems(); 
-            
+            java.sql.ResultSet rsProdi = db.readDBSafe("SELECT id_prodi, nama_prodi FROM prodi WHERE nama_prodi LIKE ?", "%" + filter + "%");
+            cbProdi.removeAllItems();
             while (rsProdi != null && rsProdi.next()) {
                 cbProdi.addItem(rsProdi.getString("id_prodi") + " - " + rsProdi.getString("nama_prodi"));
             }
-        } catch (Exception e) {
-            System.out.println("Error Filter Prodi: " + e.getMessage());
-        }
+        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }//GEN-LAST:event_txtFilterProdiKeyReleased
 
 
