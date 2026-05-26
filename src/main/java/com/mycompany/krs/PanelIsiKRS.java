@@ -390,20 +390,40 @@ initComponents();
 
         Database db = new Database();
         try {
-            java.sql.ResultSet rsCek = db.readDBSafe("SELECT id_krs FROM krs_header WHERE nim = ? AND id_periode = ?", lblNim.getText(), idPeriodeAktif);
-            if(rsCek != null && rsCek.next()){
-                javax.swing.JOptionPane.showMessageDialog(this, "Kamu SUDAH mengajukan KRS untuk periode ini."); return;
+            // 1. CEK STATUS KRS SEBELUMNYA
+            java.sql.ResultSet rsCek = db.readDBSafe("SELECT id_krs, status_validasi FROM krs_header WHERE nim = ? AND id_periode = ?", lblNim.getText(), idPeriodeAktif);
+            int idKrsLama = -1;
+            
+            if (rsCek != null && rsCek.next()) {
+                String status = rsCek.getString("status_validasi");
+                if (status.equals("Ditolak")) {
+                    idKrsLama = rsCek.getInt("id_krs"); // Simpan ID untuk direvisi
+                } else {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Kamu SUDAH mengajukan KRS untuk periode ini.\nStatus saat ini: " + status); 
+                    return;
+                }
             }
 
             String tgl = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
-            String sqlHeader = "INSERT INTO krs_header (total_sks, tgl_pengajuan, status_validasi, nim, id_periode) VALUES (?, ?, 'Menunggu', ?, ?)";
+            
             if (!db.beginTransaction()) {
                 javax.swing.JOptionPane.showMessageDialog(this, "Gagal memulai transaksi sistem!"); return;
             }
 
-            int idKrsBaru = db.insertAndGetId(sqlHeader, totalSks, tgl, lblNim.getText(), idPeriodeAktif);
+            // 2. TENTUKAN APAKAH INSERT BARU ATAU UPDATE (REVISI)
+            int idKrsBaru = -1;
+            if (idKrsLama != -1) {
+                // Jalur Revisi (KRS pernah ditolak sebelumnya)
+                boolean ok = db.executeDBSafe("UPDATE krs_header SET total_sks = ?, tgl_pengajuan = ?, status_validasi = 'Menunggu' WHERE id_krs = ?", totalSks, tgl, idKrsLama);
+                if (ok) idKrsBaru = idKrsLama; // Daur ulang ID yang lama
+            } else {
+                // Jalur Normal (Baru pertama kali submit)
+                String sqlHeader = "INSERT INTO krs_header (total_sks, tgl_pengajuan, status_validasi, nim, id_periode) VALUES (?, ?, 'Menunggu', ?, ?)";
+                idKrsBaru = db.insertAndGetId(sqlHeader, totalSks, tgl, lblNim.getText(), idPeriodeAktif);
+            }
 
-           if(idKrsBaru != -1) {
+            // Lanjut ke penyimpanan detail kelas...
+            if(idKrsBaru != -1) {
                 for(int i=0; i<modelKrs.getRowCount(); i++){
                     String idKelas = modelKrs.getValueAt(i, 0).toString();
                     

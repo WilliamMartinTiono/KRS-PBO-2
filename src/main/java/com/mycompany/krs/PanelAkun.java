@@ -214,7 +214,7 @@ private void tampilData() {
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
         // TODO add your handling code here:
-       String user = txtUsername.getText().trim();
+String user = txtUsername.getText().trim();
         String pass = new String(txtPassword.getPassword());
         if (user.isEmpty() || pass.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(this, "Data tidak boleh kosong!"); return;
@@ -227,14 +227,18 @@ private void tampilData() {
                 if (rsCek != null && rsCek.next()) {
                     javax.swing.JOptionPane.showMessageDialog(this, "Username sudah terdaftar!"); return;
                 }
-                if (db.executeDBSafe("INSERT INTO admin (username, password) VALUES (?, ?)", user, pass)) {
+                
+                // ---> FIX INSERT: Gunakan Database.hashPassword(pass)
+                if (db.executeDBSafe("INSERT INTO admin (username, password) VALUES (?, ?)", user, Database.hashPassword(pass))) {
                     javax.swing.JOptionPane.showMessageDialog(this, "Akun berhasil dibuat!");
                     btnResetActionPerformed(evt);
                 }
             } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
         } else {
             if (idAdminTerpilih.isEmpty()) return;
-            if (db.executeDBSafe("UPDATE admin SET password = ? WHERE id_admin = ?", pass, idAdminTerpilih)) {
+            
+            // ---> FIX UPDATE: Gunakan Database.hashPassword(pass)
+            if (db.executeDBSafe("UPDATE admin SET password = ? WHERE id_admin = ?", Database.hashPassword(pass), idAdminTerpilih)) {
                 javax.swing.JOptionPane.showMessageDialog(this, "Password berhasil diubah!");
                 btnResetActionPerformed(evt);
             }

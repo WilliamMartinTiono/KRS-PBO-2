@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 21, 2026 at 08:59 AM
+-- Generation Time: May 26, 2026 at 11:12 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,12 +38,13 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`id_admin`, `username`, `password`) VALUES
-(1, 'admin1', 'a'),
-(8, '2600002', '2600002'),
-(13, '24110001', '24110001'),
-(14, '2600003', '2600003'),
-(15, '24110002', '24110002'),
-(16, '24110028', '24110028');
+(1, 'admin1', 'ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb'),
+(20, '2601', '5b9ccce4a61b723926e42217fed468ee5df71d20b403754dd091e4a90f907518'),
+(21, '2602', 'a24e43b7765e445a86b1904b1c24b094dbd50eaf218ddc9cd6c2b3cbcd72cea3'),
+(22, '2603', '120e90dfb21d132a40c6281f8c8f25331969559e200f589bfe8e775e333b5b3a'),
+(23, '26001', '9a69b7176b56deabd88146f415b2dd560f4be7d93a4aee9feb821f56599cf75b'),
+(24, '26002', '6787b9b69499164f264c2145efa5297a9e3cdd92bd540391c59d5da4c4d8c70e'),
+(25, 'testadmin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3');
 
 -- --------------------------------------------------------
 
@@ -63,8 +64,9 @@ CREATE TABLE `dosen` (
 --
 
 INSERT INTO `dosen` (`nidn`, `nama_dosen`, `id_prodi`, `id_user`) VALUES
-('2600002', 'Dr. Presie', 3, 8),
-('2600003', 'Hendro', 1, 14);
+('2601', 'Irfan', 1, 20),
+('2602', 'Persie', 3, 21),
+('2603', 'Hendro', 2, 22);
 
 -- --------------------------------------------------------
 
@@ -87,8 +89,7 @@ CREATE TABLE `kelas` (
 --
 
 INSERT INTO `kelas` (`id_kelas`, `hari`, `jam`, `ruang`, `kuota`, `kode_mk`, `nidn`) VALUES
-(4, 'Senin', '08:00 - 10:00', '1.01', 39, 'MK1001', '2600002'),
-(5, 'Senin', '09.00 - 10.00', '1.02', 39, 'MK1002', '2600003');
+(8, 'Selasa', '06.00-07.00', '1.05', 40, 'MK1002', '2603');
 
 -- --------------------------------------------------------
 
@@ -100,14 +101,6 @@ CREATE TABLE `krs_detail` (
   `id_krs` int(11) NOT NULL,
   `id_kelas` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `krs_detail`
---
-
-INSERT INTO `krs_detail` (`id_krs`, `id_kelas`) VALUES
-(1, 4),
-(1, 5);
 
 -- --------------------------------------------------------
 
@@ -130,7 +123,8 @@ CREATE TABLE `krs_header` (
 --
 
 INSERT INTO `krs_header` (`id_krs`, `total_sks`, `tgl_pengajuan`, `status_validasi`, `catatan_dosen`, `nim`, `id_periode`) VALUES
-(1, 6, '2026-05-19', 'Menunggu', NULL, '24110028', 2);
+(3, 6, '2026-05-21', 'Menunggu', NULL, NULL, 2),
+(4, 3, '2026-05-26', 'Ditolak', NULL, '26001', 4);
 
 -- --------------------------------------------------------
 
@@ -152,9 +146,8 @@ CREATE TABLE `mahasiswa` (
 --
 
 INSERT INTO `mahasiswa` (`nim`, `nama_mhs`, `alamat`, `id_prodi`, `id_dosen_wali`, `id_user`) VALUES
-('24110001', 'Christ', 'purnama', 3, '2600002', 13),
-('24110002', 'Susi', 'Serdam', 2, '2600003', 15),
-('24110028', 'William Martin Tiono', 'Jl Budi Utomo', 3, '2600003', 16);
+('26001', 'William Martin Tiono', 'asd', 3, '2602', 23),
+('26002', 'Christ', '123123123', 2, '2603', 24);
 
 -- --------------------------------------------------------
 
@@ -177,7 +170,8 @@ INSERT INTO `mata_kuliah` (`kode_mk`, `nama_mk`, `sks`, `semester`) VALUES
 ('MK1001', 'PBO II', 3, 4),
 ('MK1002', 'DC', 3, 4),
 ('MK1003', 'STATIS', 3, 4),
-('MK1004', 'MAKANas', 4, 4);
+('MK1004', 'MAKANas', 4, 4),
+('MK1005', 'PERHOTAL', 3, 4);
 
 -- --------------------------------------------------------
 
@@ -235,7 +229,9 @@ CREATE TABLE `periode` (
 --
 
 INSERT INTO `periode` (`id_periode`, `tahun_ajaran`, `semester`, `status_krs`) VALUES
-(2, '2024/2025', 'Ganjil', 'Buka');
+(2, '2024/2025', 'Ganjil', 'Tutup'),
+(3, '2025/2026', 'Ganjil', 'Tutup'),
+(4, '2026/2027', 'Ganjil', 'Buka');
 
 -- --------------------------------------------------------
 
@@ -296,6 +292,7 @@ ALTER TABLE `krs_detail`
 --
 ALTER TABLE `krs_header`
   ADD PRIMARY KEY (`id_krs`),
+  ADD UNIQUE KEY `nim_2` (`nim`,`id_periode`),
   ADD KEY `nim` (`nim`),
   ADD KEY `id_periode` (`id_periode`);
 
@@ -358,25 +355,25 @@ ALTER TABLE `prodi`
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 
 --
 -- AUTO_INCREMENT for table `kelas`
 --
 ALTER TABLE `kelas`
-  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `krs_header`
 --
 ALTER TABLE `krs_header`
-  MODIFY `id_krs` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id_krs` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `periode`
 --
 ALTER TABLE `periode`
-  MODIFY `id_periode` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id_periode` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- Constraints for dumped tables

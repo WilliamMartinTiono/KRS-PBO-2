@@ -31,12 +31,17 @@ public class PanelAccKRS extends javax.swing.JPanel {
         // 2. Tarik data dari database
         try {
             Database db = new Database();
-            // Mengambil KRS yang statusnya masih 'Menunggu' beserta nama mahasiswanya
+            
+            // 1. Ambil NIDN Dosen yang sedang login
+            String dosenLogin = Login.getUserLogin(); 
+            
+            // 2. Kueri ditambah filter AND m.id_dosen_wali = ? (Sesuai database milikmu)
             String sql = "SELECT k.id_krs, k.nim, m.nama_mhs, k.total_sks, k.tgl_pengajuan " +
                          "FROM krs_header k JOIN mahasiswa m ON k.nim = m.nim " +
-                         "WHERE k.status_validasi = 'Menunggu'";
+                         "WHERE k.status_validasi = 'Menunggu' AND m.id_dosen_wali = ?";
                          
-            java.sql.ResultSet rs = db.readDBSafe(sql);
+            // 3. Masukkan dosenLogin sebagai pengaman kueri
+            java.sql.ResultSet rs = db.readDBSafe(sql, dosenLogin);
             
             while (rs != null && rs.next()) {
                 model.addRow(new Object[]{
@@ -179,9 +184,35 @@ public class PanelAccKRS extends javax.swing.JPanel {
         
         if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
             Database db = new Database();
-            if (db.executeDBSafe("UPDATE krs_header SET status_validasi = 'Ditolak' WHERE id_krs = ?", idKrs)) {
-                javax.swing.JOptionPane.showMessageDialog(this, "KRS telah Ditolak/Dibatalkan.");
-                tampilDataPending(); // Segarkan tabel
+            try {
+                // 1. Mulai Transaksi Bersama
+                if (!db.beginTransaction()) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal memulai transaksi database!");
+                    return;
+                }
+
+                // 2. Ubah status header menjadi Ditolak
+                boolean okHeader = db.executeDBSafe("UPDATE krs_header SET status_validasi = 'Ditolak' WHERE id_krs = ?", idKrs);
+
+                // 3. Kembalikan kuota (+1) untuk semua kelas yang terikat di KRS ini
+                boolean okKuota = db.executeDBSafe("UPDATE kelas SET kuota = kuota + 1 WHERE id_kelas IN (SELECT id_kelas FROM krs_detail WHERE id_krs = ?)", idKrs);
+
+                // 4. Hapus detail item KRS agar bersih dari data ganda/terkunci
+                boolean okDetail = db.executeDBSafe("DELETE FROM krs_detail WHERE id_krs = ?", idKrs);
+
+                // 5. Validasi integritas: Semua perintah harus sukses tanpa celah
+                if (okHeader && okKuota && okDetail) {
+                    db.commit(); // Simpan permanen ke database
+                    javax.swing.JOptionPane.showMessageDialog(this, "KRS telah Ditolak. Kuota kelas berhasil dikembalikan!");
+                    tampilDataPending(); // Segarkan tabel
+                } else {
+                    db.rollback(); // Batalkan semua jika ada salah satu yang pincang
+                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal memproses penolakan KRS. Transaksi dibatalkan.");
+                }
+            } catch (Exception e) {
+                db.rollback();
+                System.err.println("Terjadi Error saat menolak KRS: " + e.getMessage());
+                javax.swing.JOptionPane.showMessageDialog(this, "Error sistem: " + e.getMessage());
             }
         }
     }//GEN-LAST:event_btnTolakActionPerformed
