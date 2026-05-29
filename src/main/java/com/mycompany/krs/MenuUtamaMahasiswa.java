@@ -10,6 +10,47 @@ package com.mycompany.krs;
  */
 public class MenuUtamaMahasiswa extends javax.swing.JFrame {
     
+    private void loadStatusKrsDashboard() {
+        try {
+            Database db = new Database();
+            
+            // 1. Cari tahu dulu periode mana yang sedang aktif (Buka)
+            String idPeriodeAktif = "";
+            java.sql.ResultSet rsPeriode = db.readDBSafe("SELECT id_periode FROM periode WHERE status_krs = 'Buka' LIMIT 1");
+            if (rsPeriode != null && rsPeriode.next()) {
+                idPeriodeAktif = rsPeriode.getString("id_periode");
+            }
+
+            // 2. Jika ada periode aktif, cari KRS mahasiswa tersebut
+            if (!idPeriodeAktif.isEmpty()) {
+                String sql = "SELECT status_validasi FROM krs_header WHERE nim = ? AND id_periode = ?";
+                java.sql.ResultSet rsStatus = db.readDBSafe(sql, Login.getUserLogin(), idPeriodeAktif);
+                
+                if (rsStatus != null && rsStatus.next()) {
+                    String status = rsStatus.getString("status_validasi");
+                    lblStatusKrs.setText("Status KRS Anda Saat Ini: " + status.toUpperCase());
+                    
+                    // Mainkan warna agar UI terlihat lebih hidup dan profesional
+                    if (status.equals("Disetujui")) {
+                        lblStatusKrs.setForeground(new java.awt.Color(0, 153, 0)); // Warna Hijau Tua
+                    } else if (status.equals("Ditolak")) {
+                        lblStatusKrs.setForeground(java.awt.Color.RED); // Warna Merah
+                    } else {
+                        lblStatusKrs.setForeground(new java.awt.Color(204, 102, 0)); // Warna Oranye/Kuning
+                    }
+                } else {
+                    lblStatusKrs.setText("Status KRS Anda Saat Ini: BELUM MENGAJUKAN");
+                    lblStatusKrs.setForeground(java.awt.Color.BLACK);
+                }
+            } else {
+                lblStatusKrs.setText("Status KRS: Tidak Ada Periode KRS yang Terbuka");
+                lblStatusKrs.setForeground(java.awt.Color.GRAY);
+            }
+        } catch (Exception e) {
+            System.err.println("Gagal memuat status KRS di Beranda: " + e.getMessage());
+        }
+    }
+    
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(MenuUtamaMahasiswa.class.getName());
 
     /**
@@ -17,6 +58,7 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
      */
     public MenuUtamaMahasiswa() {
         initComponents();
+        loadStatusKrsDashboard();
          WindowUtil.setWindow80PercentCenter(this);
     }
 
@@ -35,6 +77,7 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         btnIsiKrs = new javax.swing.JButton();
         btnLogout = new javax.swing.JButton();
+        lblStatusKrs = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -84,6 +127,8 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        lblStatusKrs.setText("jLabel3");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -91,9 +136,15 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(panelKontenMhs, javax.swing.GroupLayout.DEFAULT_SIZE, 534, Short.MAX_VALUE)
-                .addContainerGap())
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(panelKontenMhs, javax.swing.GroupLayout.DEFAULT_SIZE, 534, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(lblStatusKrs)
+                        .addGap(43, 43, 43))))
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
                     .addGap(172, 172, 172)
@@ -103,13 +154,13 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(25, 25, 25)
+                        .addComponent(lblStatusKrs)
+                        .addGap(3, 3, 3)
                         .addComponent(panelKontenMhs, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(layout.createSequentialGroup()
@@ -182,6 +233,7 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JLabel lblStatusKrs;
     private javax.swing.JPanel panelKontenMhs;
     // End of variables declaration//GEN-END:variables
 }

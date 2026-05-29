@@ -71,6 +71,7 @@ public class PanelAccKRS extends javax.swing.JPanel {
         btnSetuju = new javax.swing.JButton();
         btnTolak = new javax.swing.JButton();
         btnRefresh = new javax.swing.JButton();
+        btnDetail = new javax.swing.JButton();
 
         jLabel1.setText("Daftar Pengajuan KRS (Menunggu Validasi)");
 
@@ -108,6 +109,13 @@ public class PanelAccKRS extends javax.swing.JPanel {
             }
         });
 
+        btnDetail.setText("Lihat Detail");
+        btnDetail.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDetailActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -120,16 +128,18 @@ public class PanelAccKRS extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
+                        .addContainerGap())
+                    .addGroup(layout.createSequentialGroup()
                         .addGap(6, 6, 6)
                         .addComponent(btnSetuju)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnTolak)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(btnDetail)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnRefresh)
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 459, Short.MAX_VALUE)
-                        .addContainerGap())))
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -142,7 +152,8 @@ public class PanelAccKRS extends javax.swing.JPanel {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSetuju)
                     .addComponent(btnTolak)
-                    .addComponent(btnRefresh))
+                    .addComponent(btnRefresh)
+                    .addComponent(btnDetail))
                 .addContainerGap(64, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
@@ -183,36 +194,43 @@ public class PanelAccKRS extends javax.swing.JPanel {
         int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin ingin MENOLAK KRS milik " + namaMhs + "?", "Konfirmasi Validasi", javax.swing.JOptionPane.YES_NO_OPTION);
         
         if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
+            // FITUR BARU: Minta Alasan Penolakan ke Dosen
+            String catatan = javax.swing.JOptionPane.showInputDialog(this, 
+                "Masukkan Alasan Penolakan:\n(Misal: SKS melebihi batas, hapus 1 matkul)", 
+                "Catatan Dosen Wali", 
+                javax.swing.JOptionPane.QUESTION_MESSAGE);
+            
+            // Jika dosen menekan tombol 'Cancel' atau menyilang kotak alasan, batalkan penolakan
+            if (catatan == null) {
+                return; 
+            }
+
             Database db = new Database();
             try {
-                // 1. Mulai Transaksi Bersama
                 if (!db.beginTransaction()) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal memulai transaksi database!");
-                    return;
+                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal memulai transaksi!"); return;
                 }
-
-                // 2. Ubah status header menjadi Ditolak
-                boolean okHeader = db.executeDBSafe("UPDATE krs_header SET status_validasi = 'Ditolak' WHERE id_krs = ?", idKrs);
-
-                // 3. Kembalikan kuota (+1) untuk semua kelas yang terikat di KRS ini
+                
+                // 1. Update status dan masukkan catatan dosen
+                boolean okHeader = db.executeDBSafe("UPDATE krs_header SET status_validasi = 'Ditolak', catatan_dosen = ? WHERE id_krs = ?", catatan, idKrs);
+                
+                // 2. Kembalikan kuota kelas
                 boolean okKuota = db.executeDBSafe("UPDATE kelas SET kuota = kuota + 1 WHERE id_kelas IN (SELECT id_kelas FROM krs_detail WHERE id_krs = ?)", idKrs);
-
-                // 4. Hapus detail item KRS agar bersih dari data ganda/terkunci
+                
+                // 3. Bersihkan keranjang
                 boolean okDetail = db.executeDBSafe("DELETE FROM krs_detail WHERE id_krs = ?", idKrs);
 
-                // 5. Validasi integritas: Semua perintah harus sukses tanpa celah
                 if (okHeader && okKuota && okDetail) {
-                    db.commit(); // Simpan permanen ke database
-                    javax.swing.JOptionPane.showMessageDialog(this, "KRS telah Ditolak. Kuota kelas berhasil dikembalikan!");
-                    tampilDataPending(); // Segarkan tabel
+                    db.commit();
+                    javax.swing.JOptionPane.showMessageDialog(this, "KRS telah Ditolak. Catatan penolakan berhasil dikirim ke mahasiswa!");
+                    tampilDataPending();
                 } else {
-                    db.rollback(); // Batalkan semua jika ada salah satu yang pincang
-                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal memproses penolakan KRS. Transaksi dibatalkan.");
+                    db.rollback();
+                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal memproses penolakan KRS.");
                 }
             } catch (Exception e) {
                 db.rollback();
-                System.err.println("Terjadi Error saat menolak KRS: " + e.getMessage());
-                javax.swing.JOptionPane.showMessageDialog(this, "Error sistem: " + e.getMessage());
+                System.err.println("Error tolak KRS: " + e.getMessage());
             }
         }
     }//GEN-LAST:event_btnTolakActionPerformed
@@ -222,8 +240,65 @@ public class PanelAccKRS extends javax.swing.JPanel {
         tampilDataPending();
     }//GEN-LAST:event_btnRefreshActionPerformed
 
+    private void btnDetailActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDetailActionPerformed
+        // TODO add your handling code here:
+        // 1. Ambil baris mahasiswa yang dipilih
+        int baris = tblKrsPending.getSelectedRow();
+        if (baris == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Pilih mahasiswa di tabel terlebih dahulu!");
+            return;
+        }
+
+        String idKrs = tblKrsPending.getValueAt(baris, 0).toString();
+        String namaMhs = tblKrsPending.getValueAt(baris, 2).toString();
+        
+        try {
+            Database db = new Database();
+            // 2. Kueri untuk mengambil jadwal matkul dari ID KRS tersebut
+            String sql = "SELECT mk.kode_mk, mk.nama_mk, k.hari, k.jam, mk.sks, k.ruang " +
+                         "FROM krs_detail kd " +
+                         "JOIN kelas k ON kd.id_kelas = k.id_kelas " +
+                         "JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk " +
+                         "WHERE kd.id_krs = ?";
+            java.sql.ResultSet rs = db.readDBSafe(sql, idKrs);
+            
+            // 3. Rangkai teks menjadi daftar yang rapi
+            StringBuilder detailText = new StringBuilder();
+            detailText.append("Jadwal KRS Mahasiswa: ").append(namaMhs).append("\n");
+            detailText.append("----------------------------------------------------------------------\n");
+            
+            int totalSks = 0;
+            while (rs != null && rs.next()) {
+                detailText.append("- ").append(rs.getString("kode_mk")).append(" | ")
+                          .append(rs.getString("nama_mk")).append("\n  Jadwal: ")
+                          .append(rs.getString("hari")).append(", ").append(rs.getString("jam"))
+                          .append(" (Ruang ").append(rs.getString("ruang")).append(") | ")
+                          .append(rs.getString("sks")).append(" SKS\n\n");
+                totalSks += rs.getInt("sks");
+            }
+            detailText.append("----------------------------------------------------------------------\n");
+            detailText.append("Total Keseluruhan SKS: ").append(totalSks);
+
+            // 4. Masukkan teks ke dalam kotak yang bisa di-scroll
+            javax.swing.JTextArea textArea = new javax.swing.JTextArea(detailText.toString());
+            textArea.setEditable(false);
+            textArea.setMargin(new java.awt.Insets(10, 10, 10, 10)); // Beri jarak tepi (padding)
+            
+            javax.swing.JScrollPane scrollPane = new javax.swing.JScrollPane(textArea);
+            scrollPane.setPreferredSize(new java.awt.Dimension(450, 300)); // Ukuran pop-up
+
+            // 5. Tampilkan ke layar dosen
+            javax.swing.JOptionPane.showMessageDialog(this, scrollPane, "Detail Mata Kuliah", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
+        } catch (Exception e) {
+            System.err.println("Gagal memuat detail: " + e.getMessage());
+            javax.swing.JOptionPane.showMessageDialog(this, "Terjadi kesalahan sistem saat memuat detail KRS.");
+        }
+    }//GEN-LAST:event_btnDetailActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnDetail;
     private javax.swing.JButton btnRefresh;
     private javax.swing.JButton btnSetuju;
     private javax.swing.JButton btnTolak;

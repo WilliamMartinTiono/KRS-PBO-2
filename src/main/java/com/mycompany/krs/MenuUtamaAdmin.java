@@ -17,6 +17,10 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
      */
     public MenuUtamaAdmin() {   
         initComponents();
+        panelKonten.removeAll(); 
+        panelKonten.add(new PanelDashboard()); 
+        panelKonten.repaint(); 
+        panelKonten.revalidate();
         WindowUtil.setWindow80PercentCenter(this);
     }
 

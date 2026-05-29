@@ -139,15 +139,36 @@ private String idPeriodeAktif = "";
                         rsDetail.getString("ruang"), rsDetail.getString("sks")
                     });
                 }
-                
-                // 5. Berikan Notifikasi Pop-Up yang Informatif
-                javax.swing.JOptionPane.showMessageDialog(this, 
-                    "Kamu sudah mengajukan KRS untuk periode ini.\nStatus Validasi Dosen Wali: " + status, 
-                    "Informasi KRS", 
-                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (Exception e) {
             System.err.println("Error cek status KRS: " + e.getMessage());
+        }
+    }
+    
+    // FUNGSI BARU UNTUK MENAMPILKAN CATATAN PENOLAKAN
+    private void cekKrsDitolak() {
+        if (idPeriodeAktif == null || idPeriodeAktif.isEmpty()) return;
+        
+        try {
+            Database db = new Database();
+            String sql = "SELECT catatan_dosen FROM krs_header WHERE nim = ? AND id_periode = ? AND status_validasi = 'Ditolak'";
+            java.sql.ResultSet rs = db.readDBSafe(sql, Login.getUserLogin(), idPeriodeAktif);
+            
+            if (rs != null && rs.next()) {
+                String catatan = rs.getString("catatan_dosen");
+                
+                // Ubah label atas jadi warna merah peringatan
+                lblPeriode.setText(lblPeriode.getText() + " | STATUS: DITOLAK (HARUS REVISI)");
+                lblPeriode.setForeground(java.awt.Color.RED);
+                
+                // Munculkan pop-up khusus catatan dosen
+                javax.swing.JOptionPane.showMessageDialog(this, 
+                    "KRS kamu sebelumnya DITOLAK oleh Dosen Wali.\n\nCatatan Dosen:\n\"" + (catatan != null && !catatan.trim().isEmpty() ? catatan : "Tidak ada catatan tambahan.") + "\"\n\nSilakan perbaiki jadwalmu dan ajukan ulang.", 
+                    "KRS Ditolak", 
+                    javax.swing.JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (Exception e) {
+            System.err.println("Error cek KRS ditolak: " + e.getMessage());
         }
     }
 
@@ -205,6 +226,7 @@ private String idPeriodeAktif = "";
         loadDataMahasiswa();
         loadKelasTersedia();
         cekStatusKRS();
+        cekKrsDitolak();
     }
 
     /**
@@ -431,13 +453,25 @@ private String idPeriodeAktif = "";
         // 2. Hapus dari tabel keranjang
         modelKrs.removeRow(baris);
         
-        // 3. Kembalikan data tersebut ke tabel etalase (kiri) secara instan
-        // Catatan: Kolom ke-9 (Kuota) kita beri teks "+1 (Dikembalikan)" 
+        // 3. Ambil nilai kuota asli dari database agar akurat
+        String kuotaAsli = "0";
+        try {
+            Database db = new Database();
+            // Kueri sangat ringan karena memanggil berdasarkan Primary Key (id_kelas)
+            java.sql.ResultSet rsKuota = db.readDBSafe("SELECT kuota FROM kelas WHERE id_kelas = ?", idKelas);
+            if (rsKuota != null && rsKuota.next()) {
+                kuotaAsli = rsKuota.getString("kuota");
+            }
+        } catch (Exception e) {
+            System.err.println("Gagal memuat kuota asli: " + e.getMessage());
+        }
+
+        // 4. Kembalikan data tersebut ke tabel etalase (kiri) dengan kuota yang BENAR
         modelTersedia.addRow(new Object[]{
-            idKelas, kodeMk, mataKuliah, dosen, hari, jam, ruang, sks, "+1 (Kembali)"
+            idKelas, kodeMk, mataKuliah, dosen, hari, jam, ruang, sks, kuotaAsli
         });
         
-        // 4. Hitung ulang total SKS
+        // 5. Hitung ulang total SKS
         hitungSKS();
     }//GEN-LAST:event_btnBatalActionPerformed
 
@@ -489,6 +523,9 @@ private String idPeriodeAktif = "";
             int idKrsBaru = -1;
             if (idKrsLama != -1) {
                 // Jalur Revisi (KRS pernah ditolak sebelumnya)
+                // TAMBAHAN: Bersihkan dulu detail lama di database agar tidak ada data hantu/ganda
+                db.executeDBSafe("DELETE FROM krs_detail WHERE id_krs = ?", idKrsLama); 
+                
                 boolean ok = db.executeDBSafe("UPDATE krs_header SET total_sks = ?, tgl_pengajuan = ?, status_validasi = 'Menunggu' WHERE id_krs = ?", totalSks, tgl, idKrsLama);
                 if (ok) idKrsBaru = idKrsLama; // Daur ulang ID yang lama
             } else {
@@ -515,9 +552,22 @@ private String idPeriodeAktif = "";
                 // 2. JIKA SEMUA LOOP AMAN, SIMPAN PERMANEN
                 db.commit(); 
                 javax.swing.JOptionPane.showMessageDialog(this, "Berhasil! KRS kamu telah diajukan dan sedang Menunggu Validasi Dosen Wali.");
+                
+                // 1. Kosongkan keranjang dan refresh tabel
                 modelKrs.setRowCount(0);
                 hitungSKS();
                 loadKelasTersedia();
+                
+                // 2. TAMBAHAN BUG #3: Kunci semua tombol transaksi agar tidak diklik ganda
+                btnAjukan.setEnabled(false);
+                btnAmbil.setEnabled(false);
+                btnBatal.setEnabled(false);
+                
+                // 3. TAMBAHAN BUG #3: Ubah teks label agar mahasiswa langsung sadar statusnya
+                if (!lblPeriode.getText().contains("STATUS:")) {
+                    lblPeriode.setText(lblPeriode.getText() + " | STATUS: MENUNGGU");
+                }
+                
             } else {
                 throw new Exception("Gagal membuat formulir pengajuan KRS.");
             }
