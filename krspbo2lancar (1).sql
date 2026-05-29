@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 26, 2026 at 11:12 AM
+-- Generation Time: May 29, 2026 at 09:45 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -38,12 +38,12 @@ CREATE TABLE `admin` (
 --
 
 INSERT INTO `admin` (`id_admin`, `username`, `password`) VALUES
-(1, 'admin1', 'ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb'),
-(20, '2601', '5b9ccce4a61b723926e42217fed468ee5df71d20b403754dd091e4a90f907518'),
-(21, '2602', 'a24e43b7765e445a86b1904b1c24b094dbd50eaf218ddc9cd6c2b3cbcd72cea3'),
-(22, '2603', '120e90dfb21d132a40c6281f8c8f25331969559e200f589bfe8e775e333b5b3a'),
-(23, '26001', '9a69b7176b56deabd88146f415b2dd560f4be7d93a4aee9feb821f56599cf75b'),
-(24, '26002', '6787b9b69499164f264c2145efa5297a9e3cdd92bd540391c59d5da4c4d8c70e'),
+(1, 'admin1', '37f419999f066dcf9fa98c41cfdd1e1bac9485ad65280996e3635fea1b331fd9'),
+(20, '2601', '14cb73ee51ff3deeb94dd7db4277cdd4c0b96c6fdc7c87d388b7547e8b15b0da'),
+(21, '2602', '7b5e6ddd828746cae1d46d828fb95d28bace3cd5967019fbe4ea17c59a615014'),
+(22, '2603', 'f565d5f66e8237dd7871f28d7390df8f3ba7b9fd17dc4329b54f21cb842ee20c'),
+(23, '26001', '782ff6c9a7d076172dccb71ad7cb72420499b665a958f4fc37331a12d64ca534'),
+(24, '26002', '61b7ccdb512a7d8fcba8112acc60d6c2b84924f5307ce446a436b4b369576a72'),
 (25, 'testadmin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3');
 
 -- --------------------------------------------------------
@@ -89,7 +89,7 @@ CREATE TABLE `kelas` (
 --
 
 INSERT INTO `kelas` (`id_kelas`, `hari`, `jam`, `ruang`, `kuota`, `kode_mk`, `nidn`) VALUES
-(8, 'Selasa', '06.00-07.00', '1.05', 40, 'MK1002', '2603');
+(8, 'Selasa', '06.00-07.00', '1.05', 39, 'MK1002', '2603');
 
 -- --------------------------------------------------------
 
@@ -101,6 +101,13 @@ CREATE TABLE `krs_detail` (
   `id_krs` int(11) NOT NULL,
   `id_kelas` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `krs_detail`
+--
+
+INSERT INTO `krs_detail` (`id_krs`, `id_kelas`) VALUES
+(4, 8);
 
 -- --------------------------------------------------------
 
@@ -124,7 +131,7 @@ CREATE TABLE `krs_header` (
 
 INSERT INTO `krs_header` (`id_krs`, `total_sks`, `tgl_pengajuan`, `status_validasi`, `catatan_dosen`, `nim`, `id_periode`) VALUES
 (3, 6, '2026-05-21', 'Menunggu', NULL, NULL, 2),
-(4, 3, '2026-05-26', 'Ditolak', NULL, '26001', 4);
+(4, 3, '2026-05-26', 'Menunggu', NULL, '26001', 4);
 
 -- --------------------------------------------------------
 
@@ -293,6 +300,7 @@ ALTER TABLE `krs_detail`
 ALTER TABLE `krs_header`
   ADD PRIMARY KEY (`id_krs`),
   ADD UNIQUE KEY `nim_2` (`nim`,`id_periode`),
+  ADD UNIQUE KEY `nim_3` (`nim`,`id_periode`),
   ADD KEY `nim` (`nim`),
   ADD KEY `id_periode` (`id_periode`);
 

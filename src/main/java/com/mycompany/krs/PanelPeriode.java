@@ -243,14 +243,42 @@ int baris = tblPeriode.getSelectedRow();
 
     private void btnHapusActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnHapusActionPerformed
         // TODO add your handling code here:
-        if (idPeriodeTerpilih.isEmpty()) return;
-        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin hapus?", "Konfirmasi", javax.swing.JOptionPane.YES_NO_OPTION);
-        if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
-            Database db = new Database();
-            if (db.executeDBSafe("DELETE FROM periode WHERE id_periode = ?", idPeriodeTerpilih)) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Periode berhasil dihapus!");
-                btnResetActionPerformed(evt);
+       if (idPeriodeTerpilih.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Pilih periode yang ingin dihapus terlebih dahulu!");
+            return;
+        }
+
+        Database db = new Database();
+        try {
+            // 1. CEK RELASI DATA (Apakah periode ini sudah ada yang pakai?)
+            java.sql.ResultSet rsCek = db.readDBSafe("SELECT COUNT(id_krs) AS total FROM krs_header WHERE id_periode = ?", idPeriodeTerpilih);
+            
+            if (rsCek != null && rsCek.next()) {
+                int totalKrs = rsCek.getInt("total");
+                if (totalKrs > 0) {
+                    // Blokir penghapusan jika ada data yang terikat
+                    javax.swing.JOptionPane.showMessageDialog(this, 
+                        "GAGAL MENGHAPUS!\nPeriode ini tidak bisa dihapus karena masih menaungi " + totalKrs + " data KRS Mahasiswa.\n\nHarap hapus data KRS terkait terlebih dahulu jika ingin menghapus periode ini.", 
+                        "Peringatan Relasi Data", 
+                        javax.swing.JOptionPane.WARNING_MESSAGE);
+                    return; // Hentikan proses eksekusi
+                }
             }
+
+            // 2. JIKA AMAN DARI RELASI, LANJUTKAN KONFIRMASI HAPUS
+            int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin ingin menghapus periode ini?", "Konfirmasi Hapus", javax.swing.JOptionPane.YES_NO_OPTION);
+            
+            if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
+                if (db.executeDBSafe("DELETE FROM periode WHERE id_periode = ?", idPeriodeTerpilih)) {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Periode berhasil dihapus!");
+                    btnResetActionPerformed(evt);
+                } else {
+                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal menghapus periode. Pastikan tidak ada data lain yang bergantung padanya.", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error saat menghapus periode: " + e.getMessage());
+            javax.swing.JOptionPane.showMessageDialog(this, "Terjadi kesalahan sistem saat mencoba menghapus data.");
         }
     }//GEN-LAST:event_btnHapusActionPerformed
 

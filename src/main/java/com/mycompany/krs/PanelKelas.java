@@ -340,13 +340,13 @@ public class PanelKelas extends javax.swing.JPanel {
             return; 
         }
 
-        // --- KODINGAN DATABASE DI BAWAHNYA TETAP SAMA ---
+        // --- KODINGAN DATABASE ---
         Database db = new Database();
         try {
             // SATPAM ANTI-BENTROK YANG LEBIH CERDAS
             String queryRuang = "SELECT jam FROM kelas WHERE ruang = ? AND hari = ?";
             String queryDosen = "SELECT jam FROM kelas WHERE nidn = ? AND hari = ?";
-            java.sql.ResultSet rsRuang, rsDosen;
+            java.sql.ResultSet rsRuang, rsDosen; // <-- Ini variabel yang mungkin sempat terhapus tadi
 
             if (btnSimpan.getText().equals("Ubah Data")) {
                 queryRuang += " AND id_kelas != ?"; queryDosen += " AND id_kelas != ?";
@@ -368,12 +368,30 @@ public class PanelKelas extends javax.swing.JPanel {
                 }
             }
 
-            // EKSEKUSI
+            // EKSEKUSI SIMPAN / UBAH
             if (btnSimpan.getText().equals("Simpan")) {
                 if (db.executeDBSafe("INSERT INTO kelas (kode_mk, nidn, ruang, hari, jam, kuota) VALUES (?, ?, ?, ?, ?, ?)", kodeMk, nidn, ruang, hari, jam, kuota)) {
                     javax.swing.JOptionPane.showMessageDialog(this, "Kelas Dibuka!"); btnResetActionPerformed(evt);
                 }
             } else {
+                // 1. FIX BUG #8: CEK JUMLAH MAHASISWA YANG SUDAH TERDAFTAR
+                java.sql.ResultSet rsTerdaftar = db.readDBSafe("SELECT COUNT(id_krs) AS terdaftar FROM krs_detail WHERE id_kelas = ?", idKelasTerpilih);
+                int jumlahTerdaftar = 0;
+                
+                if (rsTerdaftar != null && rsTerdaftar.next()) {
+                    jumlahTerdaftar = rsTerdaftar.getInt("terdaftar");
+                }
+                
+                // 2. BLOKIR JIKA KUOTA BARU LEBIH KECIL DARI YANG SUDAH DAFTAR
+                if (kuota < jumlahTerdaftar) {
+                    javax.swing.JOptionPane.showMessageDialog(this, 
+                        "GAGAL MENGUBAH KUOTA!\nKelas ini sudah diisi oleh " + jumlahTerdaftar + " mahasiswa.\nKuota baru (" + kuota + ") tidak boleh lebih kecil dari jumlah mahasiswa yang sudah terdaftar.", 
+                        "Validasi Kapasitas", 
+                        javax.swing.JOptionPane.WARNING_MESSAGE);
+                    return; // Hentikan proses update
+                }
+
+                // 3. JIKA AMAN (Kuota >= Mahasiswa Terdaftar), LANJUTKAN UPDATE
                 if (db.executeDBSafe("UPDATE kelas SET kode_mk=?, nidn=?, ruang=?, hari=?, jam=?, kuota=? WHERE id_kelas=?", kodeMk, nidn, ruang, hari, jam, kuota, idKelasTerpilih)) {
                     javax.swing.JOptionPane.showMessageDialog(this, "Kelas Diperbarui!"); btnResetActionPerformed(evt);
                 }

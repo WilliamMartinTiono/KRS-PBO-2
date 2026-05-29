@@ -98,6 +98,58 @@ private String idPeriodeAktif = "";
                 javax.swing.JOptionPane.ERROR_MESSAGE);
         }
     }
+    
+    private void cekStatusKRS() {
+        if (idPeriodeAktif == null || idPeriodeAktif.isEmpty()) return;
+        
+        Database db = new Database();
+        try {
+            // 1. Cek apakah ada KRS di periode ini (Kecuali yang ditolak, karena yang ditolak boleh revisi/isi ulang)
+            String sql = "SELECT id_krs, status_validasi, total_sks FROM krs_header WHERE nim = ? AND id_periode = ? AND status_validasi != 'Ditolak'";
+            java.sql.ResultSet rs = db.readDBSafe(sql, Login.getUserLogin(), idPeriodeAktif);
+            
+            if (rs != null && rs.next()) {
+                String status = rs.getString("status_validasi");
+                String idKrs = rs.getString("id_krs");
+                
+                // 2. Kunci Tombol agar tidak bisa memanipulasi keranjang lagi
+                btnAjukan.setEnabled(false);
+                btnAmbil.setEnabled(false);
+                btnBatal.setEnabled(false);
+                
+                // 3. Tampilkan Status di Label Periode
+                lblPeriode.setText(lblPeriode.getText() + " | STATUS: " + status.toUpperCase());
+                lblTotalSks.setText(rs.getString("total_sks"));
+                
+                // 4. Tarik data kelas yang sudah diajukan ke tabel keranjang (tblKrsSaya)
+                modelKrs.setRowCount(0); // Bersihkan keranjang
+                String sqlDetail = "SELECT k.id_kelas, mk.kode_mk, mk.nama_mk, d.nama_dosen, k.hari, k.jam, k.ruang, mk.sks " +
+                                   "FROM krs_detail kd " +
+                                   "JOIN kelas k ON kd.id_kelas = k.id_kelas " +
+                                   "JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk " +
+                                   "JOIN dosen d ON k.nidn = d.nidn " +
+                                   "WHERE kd.id_krs = ?";
+                java.sql.ResultSet rsDetail = db.readDBSafe(sqlDetail, idKrs);
+                
+                while (rsDetail != null && rsDetail.next()) {
+                    modelKrs.addRow(new Object[]{
+                        rsDetail.getString("id_kelas"), rsDetail.getString("kode_mk"), 
+                        rsDetail.getString("nama_mk"), rsDetail.getString("nama_dosen"), 
+                        rsDetail.getString("hari"), rsDetail.getString("jam"), 
+                        rsDetail.getString("ruang"), rsDetail.getString("sks")
+                    });
+                }
+                
+                // 5. Berikan Notifikasi Pop-Up yang Informatif
+                javax.swing.JOptionPane.showMessageDialog(this, 
+                    "Kamu sudah mengajukan KRS untuk periode ini.\nStatus Validasi Dosen Wali: " + status, 
+                    "Informasi KRS", 
+                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception e) {
+            System.err.println("Error cek status KRS: " + e.getMessage());
+        }
+    }
 
     private void hitungSKS() {
         totalSks = 0;
@@ -127,8 +179,8 @@ private String idPeriodeAktif = "";
      * Creates new form PanelIsiKRS
      */
     public PanelIsiKRS() {
-initComponents();
-        setupTabel();
+    initComponents();
+    setupTabel();
 
         // 1. CEK SESI LOGIN DI PINTU MASUK UTAMA
         if (Login.getUserLogin() == null || Login.getUserLogin().trim().isEmpty()) {
@@ -152,6 +204,7 @@ initComponents();
         // Jika sesi aman, jalankan seperti biasa
         loadDataMahasiswa();
         loadKelasTersedia();
+        cekStatusKRS();
     }
 
     /**
@@ -359,13 +412,33 @@ initComponents();
     }//GEN-LAST:event_btnAmbilActionPerformed
 
     private void btnBatalActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBatalActionPerformed
-        // TODO add your handling code here:
         int baris = tblKrsSaya.getSelectedRow();
-        if(baris == -1) return;
+        if(baris == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Pilih mata kuliah yang akan dibatalkan!"); 
+            return;
+        }
         
-        modelKrs.removeRow(baris); // Buang dari keranjang
+        // 1. Simpan data baris yang mau dihapus dari keranjang ke variabel memori
+        Object idKelas = modelKrs.getValueAt(baris, 0);
+        Object kodeMk = modelKrs.getValueAt(baris, 1);
+        Object mataKuliah = modelKrs.getValueAt(baris, 2);
+        Object dosen = modelKrs.getValueAt(baris, 3);
+        Object hari = modelKrs.getValueAt(baris, 4);
+        Object jam = modelKrs.getValueAt(baris, 5);
+        Object ruang = modelKrs.getValueAt(baris, 6);
+        Object sks = modelKrs.getValueAt(baris, 7);
+        
+        // 2. Hapus dari tabel keranjang
+        modelKrs.removeRow(baris);
+        
+        // 3. Kembalikan data tersebut ke tabel etalase (kiri) secara instan
+        // Catatan: Kolom ke-9 (Kuota) kita beri teks "+1 (Dikembalikan)" 
+        modelTersedia.addRow(new Object[]{
+            idKelas, kodeMk, mataKuliah, dosen, hari, jam, ruang, sks, "+1 (Kembali)"
+        });
+        
+        // 4. Hitung ulang total SKS
         hitungSKS();
-        loadKelasTersedia(); // Refresh etalase
     }//GEN-LAST:event_btnBatalActionPerformed
 
     private void btnAjukanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAjukanActionPerformed
@@ -390,25 +463,27 @@ initComponents();
 
         Database db = new Database();
         try {
-            // 1. CEK STATUS KRS SEBELUMNYA
-            java.sql.ResultSet rsCek = db.readDBSafe("SELECT id_krs, status_validasi FROM krs_header WHERE nim = ? AND id_periode = ?", lblNim.getText(), idPeriodeAktif);
-            int idKrsLama = -1;
+            // 0. MULAI TRANSAKSI DI AWAL AGAR DATA TERKUNCI DARI KLIK GANDA (Pindah ke atas!)
+            if (!db.beginTransaction()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Gagal memulai transaksi sistem!"); return;
+            }
+
+            // 1. CEK STATUS KRS SEBELUMNYA (Sekarang dilindungi transaksi & FOR UPDATE)
+            java.sql.ResultSet rsCek = db.readDBSafe("SELECT id_krs, status_validasi FROM krs_header WHERE nim = ? AND id_periode = ? FOR UPDATE", lblNim.getText(), idPeriodeAktif);
             
+            int idKrsLama = -1;
             if (rsCek != null && rsCek.next()) {
                 String status = rsCek.getString("status_validasi");
                 if (status.equals("Ditolak")) {
                     idKrsLama = rsCek.getInt("id_krs"); // Simpan ID untuk direvisi
                 } else {
+                    db.rollback(); // Wajib rollback karena transaksi sudah dimulai!
                     javax.swing.JOptionPane.showMessageDialog(this, "Kamu SUDAH mengajukan KRS untuk periode ini.\nStatus saat ini: " + status); 
                     return;
                 }
             }
 
             String tgl = new java.text.SimpleDateFormat("yyyy-MM-dd").format(new java.util.Date());
-            
-            if (!db.beginTransaction()) {
-                javax.swing.JOptionPane.showMessageDialog(this, "Gagal memulai transaksi sistem!"); return;
-            }
 
             // 2. TENTUKAN APAKAH INSERT BARU ATAU UPDATE (REVISI)
             int idKrsBaru = -1;

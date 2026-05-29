@@ -125,13 +125,20 @@ try {
     }
     public static String hashPassword(String password) {
         try {
+            // FIX #5: Tambahkan 'Salt' Rahasia. 
+            // Ini akan ditempelkan ke password user sebelum dienkripsi.
+            String salt = "SIAKAD_SECRET_2026!"; 
+            String saltedPassword = password + salt;
+            
             java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] hash = md.digest(password.getBytes("UTF-8"));
+            byte[] hash = md.digest(saltedPassword.getBytes("UTF-8"));
             StringBuilder sb = new StringBuilder();
             for (byte b : hash) sb.append(String.format("%02x", b));
             return sb.toString();
         } catch (Exception e) {
-            return password; 
+            // FIX #6: JANGAN PERNAH kembalikan password asli. Paksa sistem berhenti.
+            throw new RuntimeException("Fatal Error: Sistem Enkripsi Kriptografi Gagal!", e);
         }
     }
+   
 }
