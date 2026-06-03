@@ -73,9 +73,15 @@ private String idPeriodeAktif = "";
         modelTersedia.setRowCount(0);
         try {
             Database db = new Database();
+            // FITUR BARU: Hanya ambil kelas yang berada di periode yang sedang aktif (Buka)
             String sql = "SELECT k.id_kelas, mk.kode_mk, mk.nama_mk, d.nama_dosen, k.hari, k.jam, k.ruang, mk.sks, k.kuota " +
-                         "FROM kelas k JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk JOIN dosen d ON k.nidn = d.nidn WHERE k.kuota > 0";
-            java.sql.ResultSet rs = db.readDBSafe(sql);
+                         "FROM kelas k " +
+                         "JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk " +
+                         "JOIN dosen d ON k.nidn = d.nidn " +
+                         "WHERE k.kuota > 0 AND k.id_periode = ?"; // <--- Filter rahasianya di sini
+            
+            // Masukkan variabel idPeriodeAktif (yang didapat dari loadDataMahasiswa) ke dalam eksekusi kueri
+            java.sql.ResultSet rs = db.readDBSafe(sql, idPeriodeAktif);
             
             while(rs != null && rs.next()) {
                 String idKelas = rs.getString("id_kelas");

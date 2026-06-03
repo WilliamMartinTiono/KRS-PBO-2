@@ -26,13 +26,22 @@ public class PanelKelas extends javax.swing.JPanel {
     private void loadComboBox() {
         try {
             Database db = new Database();
+            // 1. Load Matkul
             java.sql.ResultSet rsMk = db.readDBSafe("SELECT kode_mk, nama_mk FROM mata_kuliah");
             cbMatkul.removeAllItems();
             while (rsMk != null && rsMk.next()) { cbMatkul.addItem(rsMk.getString("kode_mk") + " - " + rsMk.getString("nama_mk")); }
 
+            // 2. Load Dosen
             java.sql.ResultSet rsDosen = db.readDBSafe("SELECT nidn, nama_dosen FROM dosen");
             cbDosen.removeAllItems();
             while (rsDosen != null && rsDosen.next()) { cbDosen.addItem(rsDosen.getString("nidn") + " - " + rsDosen.getString("nama_dosen")); }
+            
+            // 3. FITUR BARU: Load Periode
+            java.sql.ResultSet rsPeriode = db.readDBSafe("SELECT id_periode, semester, tahun_ajaran FROM periode ORDER BY id_periode DESC");
+            cbPeriode.removeAllItems();
+            while (rsPeriode != null && rsPeriode.next()) { 
+                cbPeriode.addItem(rsPeriode.getString("id_periode") + "-" + rsPeriode.getString("semester") + " " + rsPeriode.getString("tahun_ajaran")); 
+            }
         } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
     }
 
@@ -103,6 +112,8 @@ public class PanelKelas extends javax.swing.JPanel {
         tblKelas = new javax.swing.JTable();
         txtCari = new javax.swing.JTextField();
         btnCari = new javax.swing.JButton();
+        jLabel10 = new javax.swing.JLabel();
+        cbPeriode = new javax.swing.JComboBox<>();
 
         jLabel1.setText("Kelola Kelas");
 
@@ -200,6 +211,8 @@ public class PanelKelas extends javax.swing.JPanel {
             }
         });
 
+        jLabel10.setText("Periode");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -207,35 +220,18 @@ public class PanelKelas extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(171, 171, 171)
-                        .addComponent(jLabel1))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel6)
-                            .addComponent(jLabel7)
-                            .addComponent(jLabel8)
-                            .addComponent(jLabel9))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(cbHari, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(cbMatkul, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel4)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtFilterMatkul, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(171, 171, 171)
+                                .addComponent(jLabel1))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(cbDosen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel5)
+                                .addContainerGap()
+                                .addComponent(btnSimpan)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(txtFilterDosen))
-                            .addComponent(txtRuang)
-                            .addComponent(txtJam)
-                            .addComponent(txtKuota)))
+                                .addComponent(btnHapus)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnReset)))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(layout.createSequentialGroup()
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -243,15 +239,40 @@ public class PanelKelas extends javax.swing.JPanel {
                                 .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, 114, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(btnCari))
-                            .addComponent(jScrollPane1)))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(btnSimpan)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnHapus)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnReset)))
+                            .addComponent(jScrollPane1)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(jLabel2)
+                                    .addComponent(jLabel3)
+                                    .addComponent(jLabel6)
+                                    .addComponent(jLabel7)
+                                    .addComponent(jLabel8)
+                                    .addComponent(jLabel10))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(cbPeriode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addComponent(cbMatkul, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                            .addComponent(jLabel4)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                            .addComponent(txtFilterMatkul, javax.swing.GroupLayout.PREFERRED_SIZE, 78, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                        .addGroup(layout.createSequentialGroup()
+                                            .addComponent(cbDosen, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                            .addComponent(jLabel5)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                            .addComponent(txtFilterDosen))
+                                        .addComponent(txtRuang)
+                                        .addComponent(txtJam)
+                                        .addComponent(txtKuota))
+                                    .addComponent(cbHari, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
                 .addContainerGap())
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jLabel9)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -283,21 +304,24 @@ public class PanelKelas extends javax.swing.JPanel {
                     .addComponent(txtKuota, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel8))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel10)
+                    .addComponent(cbPeriode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(5, 5, 5)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
                     .addComponent(cbHari, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGap(15, 15, 15)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(txtCari, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnCari))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 243, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 274, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSimpan)
                     .addComponent(btnHapus)
-                    .addComponent(btnReset))
-                .addGap(18, 18, 18))
+                    .addComponent(btnReset)))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -308,8 +332,16 @@ public class PanelKelas extends javax.swing.JPanel {
             return;
         }
         
+        // 1.5 FITUR BARU: VALIDASI COMBOBOX PERIODE
+        if (cbPeriode.getSelectedItem() == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Data Periode belum tersedia! Buat periode terlebih dahulu.", "Peringatan", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
         String kodeMk = cbMatkul.getSelectedItem().toString().split(" - ")[0];
         String nidn = cbDosen.getSelectedItem().toString().split(" - ")[0];
+        String idPeriode = cbPeriode.getSelectedItem().toString().split("-")[0]; // Ambil ID Periode
+        
         String ruang = txtRuang.getText().trim(); 
         String jam = txtJam.getText().trim();
         String hari = cbHari.getSelectedItem().toString(); 
@@ -343,34 +375,35 @@ public class PanelKelas extends javax.swing.JPanel {
         // --- KODINGAN DATABASE ---
         Database db = new Database();
         try {
-            // SATPAM ANTI-BENTROK YANG LEBIH CERDAS
-            String queryRuang = "SELECT jam FROM kelas WHERE ruang = ? AND hari = ?";
-            String queryDosen = "SELECT jam FROM kelas WHERE nidn = ? AND hari = ?";
-            java.sql.ResultSet rsRuang, rsDosen; // <-- Ini variabel yang mungkin sempat terhapus tadi
+            // SATPAM ANTI-BENTROK YANG LEBIH CERDAS (Ditambah id_periode agar beda semester boleh pakai ruang/dosen di jam sama)
+            String queryRuang = "SELECT jam FROM kelas WHERE ruang = ? AND hari = ? AND id_periode = ?";
+            String queryDosen = "SELECT jam FROM kelas WHERE nidn = ? AND hari = ? AND id_periode = ?";
+            java.sql.ResultSet rsRuang, rsDosen;
 
             if (btnSimpan.getText().equals("Ubah Data")) {
                 queryRuang += " AND id_kelas != ?"; queryDosen += " AND id_kelas != ?";
-                rsRuang = db.readDBSafe(queryRuang, ruang, hari, idKelasTerpilih);
-                rsDosen = db.readDBSafe(queryDosen, nidn, hari, idKelasTerpilih);
+                rsRuang = db.readDBSafe(queryRuang, ruang, hari, idPeriode, idKelasTerpilih);
+                rsDosen = db.readDBSafe(queryDosen, nidn, hari, idPeriode, idKelasTerpilih);
             } else {
-                rsRuang = db.readDBSafe(queryRuang, ruang, hari);
-                rsDosen = db.readDBSafe(queryDosen, nidn, hari);
+                rsRuang = db.readDBSafe(queryRuang, ruang, hari, idPeriode);
+                rsDosen = db.readDBSafe(queryDosen, nidn, hari, idPeriode);
             }
 
             while (rsRuang != null && rsRuang.next()) {
                 if (cekBentrokWaktu(jam, rsRuang.getString("jam"))) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Ruang dipakai jam " + rsRuang.getString("jam")); return;
+                    javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Ruang dipakai jam " + rsRuang.getString("jam") + " pada periode ini"); return;
                 }
             }
             while (rsDosen != null && rsDosen.next()) {
                 if (cekBentrokWaktu(jam, rsDosen.getString("jam"))) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Dosen mengajar jam " + rsDosen.getString("jam")); return;
+                    javax.swing.JOptionPane.showMessageDialog(this, "BENTROK! Dosen mengajar jam " + rsDosen.getString("jam") + " pada periode ini"); return;
                 }
             }
 
             // EKSEKUSI SIMPAN / UBAH
             if (btnSimpan.getText().equals("Simpan")) {
-                if (db.executeDBSafe("INSERT INTO kelas (kode_mk, nidn, ruang, hari, jam, kuota) VALUES (?, ?, ?, ?, ?, ?)", kodeMk, nidn, ruang, hari, jam, kuota)) {
+                // Kueri INSERT baru (ditambah id_periode di akhir)
+                if (db.executeDBSafe("INSERT INTO kelas (kode_mk, nidn, ruang, hari, jam, kuota, id_periode) VALUES (?, ?, ?, ?, ?, ?, ?)", kodeMk, nidn, ruang, hari, jam, kuota, idPeriode)) {
                     javax.swing.JOptionPane.showMessageDialog(this, "Kelas Dibuka!"); btnResetActionPerformed(evt);
                 }
             } else {
@@ -391,8 +424,8 @@ public class PanelKelas extends javax.swing.JPanel {
                     return; // Hentikan proses update
                 }
 
-                // 3. JIKA AMAN (Kuota >= Mahasiswa Terdaftar), LANJUTKAN UPDATE
-                if (db.executeDBSafe("UPDATE kelas SET kode_mk=?, nidn=?, ruang=?, hari=?, jam=?, kuota=? WHERE id_kelas=?", kodeMk, nidn, ruang, hari, jam, kuota, idKelasTerpilih)) {
+                // 3. JIKA AMAN, LANJUTKAN UPDATE (Kueri ditambah id_periode)
+                if (db.executeDBSafe("UPDATE kelas SET kode_mk=?, nidn=?, ruang=?, hari=?, jam=?, kuota=?, id_periode=? WHERE id_kelas=?", kodeMk, nidn, ruang, hari, jam, kuota, idPeriode, idKelasTerpilih)) {
                     javax.swing.JOptionPane.showMessageDialog(this, "Kelas Diperbarui!"); btnResetActionPerformed(evt);
                 }
             }
@@ -519,7 +552,9 @@ public class PanelKelas extends javax.swing.JPanel {
     private javax.swing.JComboBox<String> cbDosen;
     private javax.swing.JComboBox<String> cbHari;
     private javax.swing.JComboBox<String> cbMatkul;
+    private javax.swing.JComboBox<String> cbPeriode;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
