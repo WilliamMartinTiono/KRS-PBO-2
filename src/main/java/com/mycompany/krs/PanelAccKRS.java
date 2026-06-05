@@ -72,6 +72,7 @@ public class PanelAccKRS extends javax.swing.JPanel {
         btnTolak = new javax.swing.JButton();
         btnRefresh = new javax.swing.JButton();
         btnDetail = new javax.swing.JButton();
+        btnValidasi = new javax.swing.JButton();
 
         jLabel1.setText("Daftar Pengajuan KRS (Menunggu Validasi)");
 
@@ -116,6 +117,13 @@ public class PanelAccKRS extends javax.swing.JPanel {
             }
         });
 
+        btnValidasi.setText("Validasi Per MK");
+        btnValidasi.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnValidasiActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -132,9 +140,12 @@ public class PanelAccKRS extends javax.swing.JPanel {
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
                         .addGap(6, 6, 6)
-                        .addComponent(btnSetuju)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnTolak)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(btnValidasi, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(btnSetuju)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnTolak)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnDetail)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -154,7 +165,9 @@ public class PanelAccKRS extends javax.swing.JPanel {
                     .addComponent(btnTolak)
                     .addComponent(btnRefresh)
                     .addComponent(btnDetail))
-                .addContainerGap(64, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnValidasi)
+                .addContainerGap(35, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -296,12 +309,115 @@ public class PanelAccKRS extends javax.swing.JPanel {
         }
     }//GEN-LAST:event_btnDetailActionPerformed
 
+    private void btnValidasiActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnValidasiActionPerformed
+        // TODO add your handling code here:
+        int baris = tblKrsPending.getSelectedRow();
+        if (baris == -1) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Pilih mahasiswa di tabel terlebih dahulu!");
+            return;
+        }
+
+        String idKrs = tblKrsPending.getValueAt(baris, 0).toString();
+        String namaMhs = tblKrsPending.getValueAt(baris, 2).toString();
+
+        Database db = new Database();
+        try {
+            // 1. Ambil detail KRS
+            String sql = "SELECT kd.id_kelas, mk.kode_mk, mk.nama_mk, mk.sks, kd.status_detail " +
+                         "FROM krs_detail kd JOIN kelas k ON kd.id_kelas = k.id_kelas " +
+                         "JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk WHERE kd.id_krs = ?";
+            java.sql.ResultSet rs = db.readDBSafe(sql, idKrs);
+
+            // 2. Buat Tabel Virtual untuk Dialog Pilihan Dosen
+            String[] kolom = {"ID Kelas", "Kode", "Mata Kuliah", "SKS", "Keputusan"};
+            javax.swing.table.DefaultTableModel modelValidasi = new javax.swing.table.DefaultTableModel(kolom, 0) {
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return column == 4; // Hanya kolom "Keputusan" yang bisa diedit (diklik)
+                }
+            };
+
+            int totalSks = 0;
+            while (rs != null && rs.next()) {
+                modelValidasi.addRow(new Object[]{
+                    rs.getString("id_kelas"), rs.getString("kode_mk"), 
+                    rs.getString("nama_mk"), rs.getString("sks"), "Setujui" // Default pilihan
+                });
+                totalSks += rs.getInt("sks");
+            }
+
+            javax.swing.JTable tblDialog = new javax.swing.JTable(modelValidasi);
+            // Pasang ComboBox "Setujui/Tolak" ke kolom Keputusan
+            javax.swing.JComboBox<String> cbKeputusan = new javax.swing.JComboBox<>(new String[]{"Setujui", "Tolak"});
+            tblDialog.getColumnModel().getColumn(4).setCellEditor(new javax.swing.DefaultCellEditor(cbKeputusan));
+            
+            // 3. Susun UI Dialog
+            javax.swing.JScrollPane scrollPanel = new javax.swing.JScrollPane(tblDialog);
+            scrollPanel.setPreferredSize(new java.awt.Dimension(500, 200));
+            javax.swing.JTextArea txtCatatan = new javax.swing.JTextArea(3, 20);
+            
+            javax.swing.JPanel panelDialog = new javax.swing.JPanel(new java.awt.BorderLayout(5, 5));
+            panelDialog.add(new javax.swing.JLabel("Validasi KRS: " + namaMhs + " (" + totalSks + " SKS) - Ubah kolom Keputusan:"), java.awt.BorderLayout.NORTH);
+            panelDialog.add(scrollPanel, java.awt.BorderLayout.CENTER);
+            
+            javax.swing.JPanel panelCatatan = new javax.swing.JPanel(new java.awt.BorderLayout());
+            panelCatatan.add(new javax.swing.JLabel("Catatan Validasi Dosen:"), java.awt.BorderLayout.NORTH);
+            panelCatatan.add(new javax.swing.JScrollPane(txtCatatan), java.awt.BorderLayout.CENTER);
+            panelDialog.add(panelCatatan, java.awt.BorderLayout.SOUTH);
+
+            // 4. Tampilkan Dialog
+            int hasil = javax.swing.JOptionPane.showConfirmDialog(this, panelDialog, "Validasi KRS Parsial", javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.PLAIN_MESSAGE);
+            
+            if (hasil == javax.swing.JOptionPane.OK_OPTION) {
+                // 5. Eksekusi Transaksi Database Berdasarkan Pilihan
+                if (!db.beginTransaction()) return;
+                
+                int countSetuju = 0, countTolak = 0;
+                int rowCount = tblDialog.getRowCount();
+                
+                for (int i = 0; i < rowCount; i++) {
+                    String idKls = modelValidasi.getValueAt(i, 0).toString();
+                    String keputusan = modelValidasi.getValueAt(i, 4).toString();
+                    
+                    if (keputusan.equals("Setujui")) {
+                        db.executeDBSafe("UPDATE krs_detail SET status_detail = 'Disetujui' WHERE id_krs = ? AND id_kelas = ?", idKrs, idKls);
+                        countSetuju++;
+                    } else {
+                        // Jika ditolak, set status dan KEMBALIKAN KUOTA kelas tersebut!
+                        db.executeDBSafe("UPDATE krs_detail SET status_detail = 'Ditolak' WHERE id_krs = ? AND id_kelas = ?", idKrs, idKls);
+                        db.executeDBSafe("UPDATE kelas SET kuota = kuota + 1 WHERE id_kelas = ?", idKls);
+                        countTolak++;
+                    }
+                }
+                
+                // 6. Kalkulasi Status Header KRS
+                String statusHeader = "Menunggu";
+                if (countSetuju == rowCount) statusHeader = "Disetujui";
+                else if (countTolak == rowCount) statusHeader = "Ditolak";
+                else statusHeader = "Sebagian Ditolak";
+                
+                // Update header
+                boolean ok = db.executeDBSafe("UPDATE krs_header SET status_validasi = ?, catatan_dosen = ? WHERE id_krs = ?", statusHeader, txtCatatan.getText(), idKrs);
+                
+                if (ok) {
+                    db.commit();
+                    javax.swing.JOptionPane.showMessageDialog(this, "Validasi berhasil disimpan dengan status: " + statusHeader);
+                    tampilDataPending();
+                } else {
+                    db.rollback();
+                }
+            }
+        } catch (Exception e) { System.err.println("Error Validasi Per MK: " + e.getMessage()); }
+    
+    }//GEN-LAST:event_btnValidasiActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDetail;
     private javax.swing.JButton btnRefresh;
     private javax.swing.JButton btnSetuju;
     private javax.swing.JButton btnTolak;
+    private javax.swing.JButton btnValidasi;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable tblKrsPending;
