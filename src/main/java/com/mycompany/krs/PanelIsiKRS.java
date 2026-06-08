@@ -81,25 +81,27 @@ private String idPeriodeAktif = "";
         modelTersedia.setRowCount(0);
         try {
             Database db = new Database();
-            // FITUR BARU: Menghitung sisa kuota secara Real-Time dengan subquery 'terdaftar'
-            String sql = "SELECT k.id_kelas, mk.kode_mk, mk.nama_mk, d.nama_dosen, k.hari, k.jam, k.ruang, mk.sks, " +
-                         "k.kuota, " +
-                         "(SELECT COUNT(*) FROM krs_detail kd JOIN krs_header kh ON kd.id_krs = kh.id_krs WHERE kd.id_kelas = k.id_kelas AND kh.status_validasi != 'Ditolak') AS terdaftar " +
-                         "FROM kelas k " +
-                         "JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk " +
-                         "JOIN dosen d ON k.nidn = d.nidn " +
-                         "WHERE k.id_periode = ? HAVING (k.kuota - terdaftar) > 0";
+            // Kueri Subquery yang 100% aman untuk semua versi MySQL
+            String sql = "SELECT * FROM (" +
+                         "  SELECT k.id_kelas, mk.kode_mk, mk.nama_mk, d.nama_dosen, k.hari, k.jam, k.ruang, mk.sks, k.kuota, " +
+                         "  (SELECT COUNT(*) FROM krs_detail kd JOIN krs_header kh ON kd.id_krs = kh.id_krs WHERE kd.id_kelas = k.id_kelas AND kh.status_validasi != 'Ditolak') AS terdaftar " +
+                         "  FROM kelas k " +
+                         "  JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk " +
+                         "  JOIN dosen d ON k.nidn = d.nidn " +
+                         "  WHERE k.id_periode = ?" +
+                         ") AS subquery " +
+                         "WHERE (kuota - terdaftar) > 0";
             
             java.sql.ResultSet rs = db.readDBSafe(sql, idPeriodeAktif);
             
             while(rs != null && rs.next()) {
                 String idKelas = rs.getString("id_kelas");
                 boolean sudahDiambil = false;
+                // Cek agar tidak ganda dengan keranjang
                 for(int i = 0; i < modelKrs.getRowCount(); i++){
                     if(modelKrs.getValueAt(i, 0).toString().equals(idKelas)){ sudahDiambil = true; break; }
                 }
                 if(!sudahDiambil) {
-                    // Kalkulasi teks kuota agar tampil keren (misal: "38 (dari 40)")
                     int kuotaAsli = rs.getInt("kuota");
                     int terdaftar = rs.getInt("terdaftar");
                     int sisaKuota = kuotaAsli - terdaftar;
@@ -107,16 +109,12 @@ private String idPeriodeAktif = "";
                     modelTersedia.addRow(new Object[]{
                         idKelas, rs.getString("kode_mk"), rs.getString("nama_mk"), rs.getString("nama_dosen"),
                         rs.getString("hari"), rs.getString("jam"), rs.getString("ruang"), rs.getString("sks"), 
-                        sisaKuota + " (dari " + kuotaAsli + ")" // <--- Kolom kuota diperbarui
+                        sisaKuota + " (dari " + kuotaAsli + ")"
                     });
                 }
             }
         } catch(Exception e) {
             System.err.println("Error muat jadwal kelas: " + e.getMessage());
-            javax.swing.JOptionPane.showMessageDialog(this, 
-                "Gagal memuat daftar kelas tersedia!\nKoneksi database terputus.", 
-                "Error Sistem", 
-                javax.swing.JOptionPane.ERROR_MESSAGE);
         }
     }
     
@@ -244,8 +242,8 @@ private String idPeriodeAktif = "";
 
         // Jika sesi aman, jalankan seperti biasa
         loadDataMahasiswa();
-        loadKelasTersedia();
         cekStatusKRS();
+        loadKelasTersedia();
         cekKrsDitolak();
     }
 
@@ -413,10 +411,10 @@ private String idPeriodeAktif = "";
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jLabel5)
                             .addComponent(lblDosenWali))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
@@ -476,7 +474,6 @@ private String idPeriodeAktif = "";
             return;
         }
         
-        // 1. Simpan data baris yang mau dihapus dari keranjang ke variabel memori
         Object idKelas = modelKrs.getValueAt(baris, 0);
         Object kodeMk = modelKrs.getValueAt(baris, 1);
         Object mataKuliah = modelKrs.getValueAt(baris, 2);
@@ -485,30 +482,40 @@ private String idPeriodeAktif = "";
         Object jam = modelKrs.getValueAt(baris, 5);
         Object ruang = modelKrs.getValueAt(baris, 6);
         Object sks = modelKrs.getValueAt(baris, 7);
-        
-        // 2. Hapus dari tabel keranjang
-        modelKrs.removeRow(baris);
-        
-        // 3. Ambil nilai kuota asli dari database agar akurat
-        String kuotaAsli = "0";
+
+        String sisaKuotaStr = "0";
+
         try {
             Database db = new Database();
+            // 1. CEK PENGAMAN: Batal Ditolak jika sudah ACC Dosen
             java.sql.ResultSet rsCek = db.readDBSafe("SELECT kd.status_detail FROM krs_detail kd JOIN krs_header kh ON kd.id_krs = kh.id_krs WHERE kh.nim = ? AND kh.id_periode = ? AND kd.id_kelas = ?", Login.getUserLogin(), idPeriodeAktif, idKelas);
             if (rsCek != null && rsCek.next()) {
                 if ("Disetujui".equalsIgnoreCase(rsCek.getString("status_detail"))) {
                     javax.swing.JOptionPane.showMessageDialog(this, "Akses Ditolak!\nKamu tidak bisa membatalkan mata kuliah yang sudah DISETUJUI oleh Dosen Wali.", "Peringatan", javax.swing.JOptionPane.WARNING_MESSAGE);
-                    return; // Hentikan proses batal
+                    return; // Hentikan proses SEBELUM dihapus dari tabel
                 }
             }
-        } catch (Exception e) {}
 
-        // 4. Kembalikan data tersebut ke tabel etalase (kiri) dengan kuota yang BENAR
+            // 2. CEK SISA KUOTA AKTUAL untuk dikembalikan ke tabel kiri
+            String sqlK = "SELECT kuota, (SELECT COUNT(*) FROM krs_detail kd JOIN krs_header kh ON kd.id_krs = kh.id_krs WHERE kd.id_kelas = kelas.id_kelas AND kh.status_validasi != 'Ditolak') AS terdaftar FROM kelas WHERE id_kelas = ?";
+            java.sql.ResultSet rsK = db.readDBSafe(sqlK, idKelas);
+            if(rsK != null && rsK.next()){
+                int k = rsK.getInt("kuota");
+                int t = rsK.getInt("terdaftar");
+                sisaKuotaStr = (k - t) + " (dari " + k + ")";
+            }
+        } catch (Exception e) { System.err.println("Error Batal: " + e.getMessage()); }
+
+        // 3. JIKA AMAN, Hapus dari keranjang kanan
+        modelKrs.removeRow(baris);
+        
+        // 4. Kembalikan ke etalase kiri dengan kuota aktual
         modelTersedia.addRow(new Object[]{
-            idKelas, kodeMk, mataKuliah, dosen, hari, jam, ruang, sks, kuotaAsli
+            idKelas, kodeMk, mataKuliah, dosen, hari, jam, ruang, sks, sisaKuotaStr
         });
         
-        // 5. Hitung ulang total SKS
         hitungSKS();
+
     }//GEN-LAST:event_btnBatalActionPerformed
 
     private void btnAjukanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAjukanActionPerformed
@@ -542,7 +549,7 @@ private String idPeriodeAktif = "";
             if (rsCek != null && rsCek.next()) {
                 String status = rsCek.getString("status_validasi");
                 
-                // ---- INI DIA YANG DIPERBAIKI (Tambah Sebagian Ditolak) ----
+                // FIX: Izinkan revisi untuk status Ditolak DAN Sebagian Ditolak
                 if (status.equals("Ditolak") || status.equals("Sebagian Ditolak")) {
                     idKrsLama = rsCek.getInt("id_krs"); // Simpan ID untuk direvisi
                 } else {

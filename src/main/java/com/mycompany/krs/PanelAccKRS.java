@@ -366,9 +366,14 @@ public class PanelAccKRS extends javax.swing.JPanel {
             panelDialog.add(panelCatatan, java.awt.BorderLayout.SOUTH);
 
             // 4. Tampilkan Dialog
-            int hasil = javax.swing.JOptionPane.showConfirmDialog(this, panelDialog, "Validasi KRS Parsial", javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.PLAIN_MESSAGE);
+int hasil = javax.swing.JOptionPane.showConfirmDialog(this, panelDialog, "Validasi KRS Parsial", javax.swing.JOptionPane.OK_CANCEL_OPTION, javax.swing.JOptionPane.PLAIN_MESSAGE);
             
             if (hasil == javax.swing.JOptionPane.OK_OPTION) {
+                // FIX: Hentikan editing paksa agar nilai ComboBox terbaru tersimpan ke dalam tabel model
+                if (tblDialog.isEditing()) {
+                    tblDialog.getCellEditor().stopCellEditing();
+                }
+
                 // 5. Eksekusi Transaksi Database Berdasarkan Pilihan
                 if (!db.beginTransaction()) return;
                 

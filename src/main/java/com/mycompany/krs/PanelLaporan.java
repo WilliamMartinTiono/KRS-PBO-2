@@ -26,9 +26,11 @@ public class PanelLaporan extends javax.swing.JPanel {
         modelKrs = new javax.swing.table.DefaultTableModel(new String[]{"NIM", "Nama Mahasiswa", "Total SKS", "Tgl Pengajuan", "Status"}, 0);
         tblKrs.setModel(modelKrs);
         
-        // 2. Model Tabel Belum KRS
-        modelBelum = new javax.swing.table.DefaultTableModel(new String[]{"NIM", "Nama Mahasiswa", "Dosen Wali"}, 0);
-        tblBelumKrs.setModel(modelBelum);
+        // --- 2. LAPORAN MAHASISWA BELUM KRS ---
+            modelBelum.setRowCount(0);
+            String sqlBelum = "SELECT m.nim, m.nama_mhs, d.nama_dosen AS dosen_wali FROM mahasiswa m " +
+                              "LEFT JOIN dosen d ON m.id_dosen_wali = d.nidn " +
+                              "WHERE m.nim NOT IN (SELECT nim FROM krs_header WHERE id_periode = ? AND nim IS NOT NULL) ORDER BY m.nama_mhs";
         
         // 3. Model Tabel Kapasitas Kelas
         modelKapasitas = new javax.swing.table.DefaultTableModel(new String[]{"Mata Kuliah", "Dosen", "Hari", "Jam", "Kuota Total", "Terisi", "Sisa Slot"}, 0);

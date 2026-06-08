@@ -23,7 +23,7 @@ private void loadStatistik() {
             if (rs != null && rs.next()) lblTotalDosen.setText(rs.getString("total"));
 
             // 3. Hitung Total Kelas Terbuka
-            rs = db.readDBSafe("SELECT COUNT(id_kelas) AS total FROM kelas");
+            rs = db.readDBSafe("SELECT COUNT(id_kelas) AS total FROM kelas WHERE id_periode = (SELECT id_periode FROM periode WHERE status_krs = 'Buka' LIMIT 1)");
             if (rs != null && rs.next()) lblTotalKelas.setText(rs.getString("total"));
 
             // 4. Hitung Total KRS yang Menunggu Validasi (Penting untuk Admin pantau)
@@ -132,9 +132,9 @@ private void loadStatistik() {
                         .addComponent(lblTotalDosen))
                     .addComponent(lblTotalKelas)
                     .addGroup(layout.createSequentialGroup()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel3))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel4))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(lblKrsPending)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))

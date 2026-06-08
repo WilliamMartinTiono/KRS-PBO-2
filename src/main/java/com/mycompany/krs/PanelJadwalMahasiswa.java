@@ -60,12 +60,10 @@ public class PanelJadwalMahasiswa extends javax.swing.JPanel {
 
             // 3. Jika belum disetujui, blokir akses jadwal
             if (!isDisetujui) {
-                javax.swing.JOptionPane.showMessageDialog(this, 
-                    "Jadwal belum tersedia.\nKRS kamu belum disetujui oleh Dosen Wali atau kamu belum mengajukan KRS.", 
-                    "Informasi Akademik", 
-                    javax.swing.JOptionPane.INFORMATION_MESSAGE);
-                return;
-            }
+        lblHeader.setText("Jadwal Belum Tersedia (KRS Menunggu Validasi)");
+        modelJadwal.setRowCount(0); // Kosongkan tabel
+        return;
+    }
 
             // 4. Jika sudah disetujui, load jadwal dan urutkan berdasarkan Hari & Jam
             String sql = "SELECT mk.kode_mk, mk.nama_mk, mk.sks, k.hari, k.jam, k.ruang, d.nama_dosen " +
