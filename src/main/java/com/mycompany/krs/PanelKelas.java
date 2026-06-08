@@ -47,16 +47,43 @@ public class PanelKelas extends javax.swing.JPanel {
 
     private void tampilData() {
         javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel();
-        model.addColumn("ID Kelas"); model.addColumn("Kode MK"); model.addColumn("NIDN Dosen");
-        model.addColumn("Ruang"); model.addColumn("Hari"); model.addColumn("Jam"); model.addColumn("Kuota");
+        model.addColumn("ID Kelas"); model.addColumn("Mata Kuliah"); model.addColumn("Dosen");
+        model.addColumn("Ruang"); model.addColumn("Hari"); model.addColumn("Jam"); model.addColumn("Kuota"); model.addColumn("Periode");
         tblKelas.setModel(model);
         try {
             Database db = new Database();
-            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM kelas");
+            // Triple JOIN: Menggabungkan tabel kelas, mata_kuliah, dosen, dan periode
+            String sql = "SELECT k.id_kelas, k.kode_mk, mk.nama_mk, k.nidn, d.nama_dosen, " +
+                         "k.ruang, k.hari, k.jam, k.kuota, k.id_periode, p.semester, p.tahun_ajaran " +
+                         "FROM kelas k " +
+                         "JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk " +
+                         "JOIN dosen d ON k.nidn = d.nidn " +
+                         "LEFT JOIN periode p ON k.id_periode = p.id_periode " +
+                         "ORDER BY k.id_kelas DESC";
+                         
+            java.sql.ResultSet rs = db.readDBSafe(sql);
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{ rs.getString("id_kelas"), rs.getString("kode_mk"), rs.getString("nidn"), rs.getString("ruang"), rs.getString("hari"), rs.getString("jam"), rs.getString("kuota") });
+                // Rangkai teks Mata Kuliah
+                String matkulTampil = rs.getString("kode_mk") + " - " + rs.getString("nama_mk");
+                // Rangkai teks Dosen
+                String dosenTampil = rs.getString("nidn") + " - " + rs.getString("nama_dosen");
+                // Rangkai teks Periode
+                String periodeTampil = rs.getString("id_periode") != null ? 
+                                       rs.getString("id_periode") + "-" + rs.getString("semester") + " " + rs.getString("tahun_ajaran") : 
+                                       "Belum Diatur";
+
+                model.addRow(new Object[]{ 
+                    rs.getString("id_kelas"), 
+                    matkulTampil, 
+                    dosenTampil, 
+                    rs.getString("ruang"), 
+                    rs.getString("hari"), 
+                    rs.getString("jam"), 
+                    rs.getString("kuota"),
+                    periodeTampil
+                });
             }
-        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
+        } catch (Exception e) { System.err.println("Terjadi Error di tampilData kelas: " + e.getMessage()); }
     }
     // FUNGSI KHUSUS UNTUK MEMBACA IRISAN WAKTU
     private boolean cekBentrokWaktu(String jamBaru, String jamAda) {
@@ -437,31 +464,23 @@ public class PanelKelas extends javax.swing.JPanel {
     }//GEN-LAST:event_txtRuangActionPerformed
 
     private void tblKelasMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblKelasMouseClicked
-        // TODO add your handling code here:
         int baris = tblKelas.getSelectedRow();
         if (baris != -1) {
             idKelasTerpilih = tblKelas.getValueAt(baris, 0).toString();
             
-            // Set teks biasa
+            // Set ComboBox (Indeks 1 dan 2 langsung di-set karena teksnya sudah sama persis!)
+            cbMatkul.setSelectedItem(tblKelas.getValueAt(baris, 1).toString());
+            cbDosen.setSelectedItem(tblKelas.getValueAt(baris, 2).toString());
+            
+            // Set Teks Biasa
             txtRuang.setText(tblKelas.getValueAt(baris, 3).toString());
             cbHari.setSelectedItem(tblKelas.getValueAt(baris, 4).toString());
             txtJam.setText(tblKelas.getValueAt(baris, 5).toString());
             txtKuota.setText(tblKelas.getValueAt(baris, 6).toString());
             
-            // Set ComboBox Matkul
-            String mkDicari = tblKelas.getValueAt(baris, 1).toString();
-            for (int i = 0; i < cbMatkul.getItemCount(); i++) {
-                if (cbMatkul.getItemAt(i).toString().startsWith(mkDicari + " -")) {
-                    cbMatkul.setSelectedIndex(i); break;
-                }
-            }
-            
-            // Set ComboBox Dosen
-            String dosenDicari = tblKelas.getValueAt(baris, 2).toString();
-            for (int i = 0; i < cbDosen.getItemCount(); i++) {
-                if (cbDosen.getItemAt(i).toString().startsWith(dosenDicari + " -")) {
-                    cbDosen.setSelectedIndex(i); break;
-                }
+            // Set ComboBox Periode (Indeks ke-7)
+            if (tblKelas.getColumnCount() > 7 && tblKelas.getValueAt(baris, 7) != null) {
+                cbPeriode.setSelectedItem(tblKelas.getValueAt(baris, 7).toString());
             }
             
             // Ubah tombol jadi "Ubah Data"
@@ -499,18 +518,38 @@ public class PanelKelas extends javax.swing.JPanel {
     }//GEN-LAST:event_btnHapusActionPerformed
 
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
-        // TODO add your handling code here:
-       String keyword = "%" + txtCari.getText().trim() + "%";
+        String keyword = "%" + txtCari.getText().trim() + "%";
         javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblKelas.getModel();
         model.setRowCount(0); 
+        
         try {
             Database db = new Database();
-            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM kelas WHERE ruang LIKE ? OR kode_mk LIKE ? OR hari LIKE ?", keyword, keyword, keyword);
+            // Kueri pencarian yang lebih pintar (bisa cari nama dosen/matkul)
+            String sql = "SELECT k.id_kelas, k.kode_mk, mk.nama_mk, k.nidn, d.nama_dosen, " +
+                         "k.ruang, k.hari, k.jam, k.kuota, k.id_periode, p.semester, p.tahun_ajaran " +
+                         "FROM kelas k " +
+                         "JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk " +
+                         "JOIN dosen d ON k.nidn = d.nidn " +
+                         "LEFT JOIN periode p ON k.id_periode = p.id_periode " +
+                         "WHERE mk.nama_mk LIKE ? OR d.nama_dosen LIKE ? OR k.ruang LIKE ?";
+                         
+            java.sql.ResultSet rs = db.readDBSafe(sql, keyword, keyword, keyword);
+            
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{ rs.getString("id_kelas"), rs.getString("kode_mk"), rs.getString("nidn"), rs.getString("ruang"), rs.getString("hari"), rs.getString("jam"), rs.getString("kuota") });
+                String matkulTampil = rs.getString("kode_mk") + " - " + rs.getString("nama_mk");
+                String dosenTampil = rs.getString("nidn") + " - " + rs.getString("nama_dosen");
+                String periodeTampil = rs.getString("id_periode") != null ? 
+                                       rs.getString("id_periode") + "-" + rs.getString("semester") + " " + rs.getString("tahun_ajaran") : 
+                                       "Belum Diatur";
+
+                model.addRow(new Object[]{ 
+                    rs.getString("id_kelas"), matkulTampil, dosenTampil, 
+                    rs.getString("ruang"), rs.getString("hari"), 
+                    rs.getString("jam"), rs.getString("kuota"), periodeTampil
+                });
             }
             if (model.getRowCount() == 0) tampilData();
-        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
+        } catch (Exception e) { System.err.println("Terjadi Error di pencarian kelas: " + e.getMessage()); }
     }//GEN-LAST:event_btnCariActionPerformed
 
     private void txtFilterMatkulKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFilterMatkulKeyReleased

@@ -42,7 +42,7 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
         btnAkun = new javax.swing.JButton();
         btnKelas = new javax.swing.JButton();
         btnPeriode = new javax.swing.JButton();
-        jButton1 = new javax.swing.JButton();
+        btnLaporan = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         panelKonten = new javax.swing.JPanel();
@@ -105,10 +105,10 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
             }
         });
 
-        jButton1.setText("Laporan");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
+        btnLaporan.setText("Laporan");
+        btnLaporan.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+                btnLaporanActionPerformed(evt);
             }
         });
 
@@ -131,7 +131,7 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
                                 .addContainerGap()
                                 .addComponent(btnLogout)))
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnLaporan, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -152,7 +152,7 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnPeriode)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton1)
+                .addComponent(btnLaporan)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 283, Short.MAX_VALUE)
                 .addComponent(btnLogout)
                 .addContainerGap())
@@ -306,13 +306,20 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
     panelKonten.revalidate();
     }//GEN-LAST:event_btnPeriodeActionPerformed
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
+    private void btnLaporanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLaporanActionPerformed
+        // 1. Bersihkan panel lama
         panelKonten.removeAll();
-        panelKonten.add(new PanelLaporan());
-        panelKonten.repaint();
+        
+        // 2. Buat objek panel laporan
+        PanelLaporan laporan = new PanelLaporan();
+        
+        // 3. Masukkan ke panelKonten dan paksa letakkan di TENGAH (Penuhi layar)
+        panelKonten.add(laporan, java.awt.BorderLayout.CENTER);
+        
+        // 4. Hitung dan gambar ulang layarnya
         panelKonten.revalidate();
-    }//GEN-LAST:event_jButton1ActionPerformed
+        panelKonten.repaint();
+    }//GEN-LAST:event_btnLaporanActionPerformed
 
     /**
      * @param args the command line arguments
@@ -343,12 +350,12 @@ public class MenuUtamaAdmin extends javax.swing.JFrame {
     private javax.swing.JButton btnAkun;
     private javax.swing.JButton btnDosen;
     private javax.swing.JButton btnKelas;
+    private javax.swing.JButton btnLaporan;
     private javax.swing.JButton btnLogout;
     private javax.swing.JButton btnMatkul;
     private javax.swing.JButton btnMhs;
     private javax.swing.JButton btnPeriode;
     private javax.swing.JButton btnProdi;
-    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;

@@ -38,22 +38,36 @@ private void loadComboBox() {
         model.addColumn("NIM");
         model.addColumn("Nama Mahasiswa");
         model.addColumn("Alamat");
-        model.addColumn("ID Prodi");
+        model.addColumn("Prodi");
         model.addColumn("Dosen Wali");
         model.addColumn("ID User");
         tblMahasiswa.setModel(model);
 
         try {
             Database db = new Database();
-            // KUERI BARU AMAN
-            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM mahasiswa");
+            // FITUR BARU: Double JOIN ke tabel prodi dan tabel dosen
+            String sql = "SELECT m.nim, m.nama_mhs, m.alamat, m.id_prodi, p.nama_prodi, " +
+                         "m.id_dosen_wali, d.nama_dosen, m.id_user " +
+                         "FROM mahasiswa m " +
+                         "LEFT JOIN prodi p ON m.id_prodi = p.id_prodi " +
+                         "LEFT JOIN dosen d ON m.id_dosen_wali = d.nidn";
+            java.sql.ResultSet rs = db.readDBSafe(sql);
+            
             while (rs != null && rs.next()) {
+                // Rangkai teks Prodi (misal: "1 - Sistem Informasi")
+                String namaProdi = rs.getString("nama_prodi") != null ? rs.getString("nama_prodi") : "Tidak Ada/Dihapus";
+                String prodiTampil = rs.getString("id_prodi") + " - " + namaProdi;
+                
+                // Rangkai teks Dosen Wali (misal: "12345 - Pak Budi")
+                String namaDosen = rs.getString("nama_dosen") != null ? rs.getString("nama_dosen") : "Tidak Ada/Dihapus";
+                String dosenTampil = rs.getString("id_dosen_wali") + " - " + namaDosen;
+
                 model.addRow(new Object[]{
                     rs.getString("nim"),
                     rs.getString("nama_mhs"),
                     rs.getString("alamat"),
-                    rs.getString("id_prodi"),
-                    rs.getString("id_dosen_wali"),
+                    prodiTampil,  // <--- Masukkan teks prodi yang sudah dirangkai
+                    dosenTampil,  // <--- Masukkan teks dosen yang sudah dirangkai
                     rs.getString("id_user")
                 });
             }
@@ -372,8 +386,7 @@ if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) 
     }//GEN-LAST:event_btnSimpanActionPerformed
 
     private void tblMahasiswaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tblMahasiswaMouseClicked
-        // TODO add your handling code here:
-       int baris = tblMahasiswa.getSelectedRow();
+      int baris = tblMahasiswa.getSelectedRow();
         if (baris != -1) {
             // Mengisi textfield dari kolom tabel
             txtNim.setText(tblMahasiswa.getValueAt(baris, 0).toString());
@@ -383,23 +396,13 @@ if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) 
             // Mengunci NIM agar tidak bisa diedit saat proses Ubah
             txtNim.setEditable(false);
             
-            // Sinkronisasi Dropdown Prodi (Kolom ke-4, index 3)
-            String prodiDicari = tblMahasiswa.getValueAt(baris, 3).toString();
-            for (int i = 0; i < cbProdi.getItemCount(); i++) {
-                if (cbProdi.getItemAt(i).toString().startsWith(prodiDicari + " -")) {
-                    cbProdi.setSelectedIndex(i);
-                    break;
-                }
-            }
+            // Sinkronisasi Dropdown Prodi (Sekarang sangat simpel)
+            String prodiDariTabel = tblMahasiswa.getValueAt(baris, 3).toString();
+            cbProdi.setSelectedItem(prodiDariTabel);
             
-            // Sinkronisasi Dropdown Dosen Wali (Kolom ke-5, index 4)
-            String dosenDicari = tblMahasiswa.getValueAt(baris, 4).toString();
-            for (int i = 0; i < cbDosenWali.getItemCount(); i++) {
-                if (cbDosenWali.getItemAt(i).toString().startsWith(dosenDicari + " -")) {
-                    cbDosenWali.setSelectedIndex(i);
-                    break;
-                }
-            }
+            // Sinkronisasi Dropdown Dosen Wali (Sangat simpel)
+            String dosenDariTabel = tblMahasiswa.getValueAt(baris, 4).toString();
+            cbDosenWali.setSelectedItem(dosenDariTabel);
         }
         btnSimpan.setText("Ubah Data");
     }//GEN-LAST:event_tblMahasiswaMouseClicked
@@ -468,19 +471,31 @@ if (cbProdi.getSelectedItem() == null || cbDosenWali.getSelectedItem() == null) 
 
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
         // TODO add your handling code here:
-        String kataKunci = txtCari.getText().trim();
+       String kataKunci = "%" + txtCari.getText().trim() + "%";
         javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblMahasiswa.getModel();
         model.setRowCount(0);
 
         try {
             Database db = new Database();
-            String param = "%" + kataKunci + "%";
-            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM mahasiswa WHERE nim LIKE ? OR nama_mhs LIKE ?", param, param);
+            // Double JOIN yang sama untuk pencarian
+            String sql = "SELECT m.nim, m.nama_mhs, m.alamat, m.id_prodi, p.nama_prodi, " +
+                         "m.id_dosen_wali, d.nama_dosen, m.id_user " +
+                         "FROM mahasiswa m " +
+                         "LEFT JOIN prodi p ON m.id_prodi = p.id_prodi " +
+                         "LEFT JOIN dosen d ON m.id_dosen_wali = d.nidn " +
+                         "WHERE m.nim LIKE ? OR m.nama_mhs LIKE ?";
+            java.sql.ResultSet rs = db.readDBSafe(sql, kataKunci, kataKunci);
 
             while (rs != null && rs.next()) {
+                String namaProdi = rs.getString("nama_prodi") != null ? rs.getString("nama_prodi") : "Tidak Ada/Dihapus";
+                String prodiTampil = rs.getString("id_prodi") + " - " + namaProdi;
+                
+                String namaDosen = rs.getString("nama_dosen") != null ? rs.getString("nama_dosen") : "Tidak Ada/Dihapus";
+                String dosenTampil = rs.getString("id_dosen_wali") + " - " + namaDosen;
+
                 model.addRow(new Object[]{
                     rs.getString("nim"), rs.getString("nama_mhs"), rs.getString("alamat"),
-                    rs.getString("id_prodi"), rs.getString("id_dosen_wali"), rs.getString("id_user")
+                    prodiTampil, dosenTampil, rs.getString("id_user")
                 });
             }
 

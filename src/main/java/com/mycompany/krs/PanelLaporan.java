@@ -26,11 +26,9 @@ public class PanelLaporan extends javax.swing.JPanel {
         modelKrs = new javax.swing.table.DefaultTableModel(new String[]{"NIM", "Nama Mahasiswa", "Total SKS", "Tgl Pengajuan", "Status"}, 0);
         tblKrs.setModel(modelKrs);
         
-        // --- 2. LAPORAN MAHASISWA BELUM KRS ---
-            modelBelum.setRowCount(0);
-            String sqlBelum = "SELECT m.nim, m.nama_mhs, d.nama_dosen AS dosen_wali FROM mahasiswa m " +
-                              "LEFT JOIN dosen d ON m.id_dosen_wali = d.nidn " +
-                              "WHERE m.nim NOT IN (SELECT nim FROM krs_header WHERE id_periode = ? AND nim IS NOT NULL) ORDER BY m.nama_mhs";
+            // 2. Model Tabel Belum KRS (Tadi yang ini hilang tidak sengaja terhapus)
+        modelBelum = new javax.swing.table.DefaultTableModel(new String[]{"NIM", "Nama Mahasiswa", "Dosen Wali"}, 0);
+        tblBelumKrs.setModel(modelBelum);
         
         // 3. Model Tabel Kapasitas Kelas
         modelKapasitas = new javax.swing.table.DefaultTableModel(new String[]{"Mata Kuliah", "Dosen", "Hari", "Jam", "Kuota Total", "Terisi", "Sisa Slot"}, 0);
@@ -52,7 +50,7 @@ public class PanelLaporan extends javax.swing.JPanel {
         } catch (Exception e) { System.err.println("Gagal load periode: " + e.getMessage()); }
     }
 
-    private void tampilkanSemuaLaporan() {
+   private void tampilkanSemuaLaporan() {
         if (cbPeriode.getSelectedItem() == null) return;
         String idPeriode = cbPeriode.getSelectedItem().toString().split("-")[0];
         Database db = new Database();
@@ -69,11 +67,11 @@ public class PanelLaporan extends javax.swing.JPanel {
                 modelKrs.addRow(new Object[]{rs.getString("nim"), rs.getString("nama_mhs"), rs.getString("total_sks"), rs.getString("tgl_pengajuan"), rs.getString("status_validasi")});
             }
 
-            // --- 2. LAPORAN MAHASISWA BELUM KRS ---
+            // --- 2. LAPORAN MAHASISWA BELUM KRS (Fix Bug SQL NULL) ---
             modelBelum.setRowCount(0);
             String sqlBelum = "SELECT m.nim, m.nama_mhs, d.nama_dosen AS dosen_wali FROM mahasiswa m " +
                               "LEFT JOIN dosen d ON m.id_dosen_wali = d.nidn " +
-                              "WHERE m.nim NOT IN (SELECT nim FROM krs_header WHERE id_periode = ?) ORDER BY m.nama_mhs";
+                              "WHERE m.nim NOT IN (SELECT nim FROM krs_header WHERE id_periode = ? AND nim IS NOT NULL) ORDER BY m.nama_mhs";
             rs = db.readDBSafe(sqlBelum, idPeriode);
             while (rs != null && rs.next()) {
                 modelBelum.addRow(new Object[]{rs.getString("nim"), rs.getString("nama_mhs"), rs.getString("dosen_wali")});
@@ -107,6 +105,7 @@ public class PanelLaporan extends javax.swing.JPanel {
             System.err.println("Gagal memuat laporan: " + e.getMessage());
             javax.swing.JOptionPane.showMessageDialog(this, "Terjadi kesalahan saat memuat laporan.");
         }
+    
     }
     /**
      * This method is called from within the constructor to initialize the form.

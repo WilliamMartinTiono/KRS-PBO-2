@@ -25,15 +25,28 @@ private void loadComboBox() {
     private void tampilData() {
         javax.swing.table.DefaultTableModel model = new javax.swing.table.DefaultTableModel();
         model.addColumn("NIDN"); model.addColumn("Nama Dosen");
-        model.addColumn("ID Prodi"); model.addColumn("ID User");
+        model.addColumn("Prodi"); model.addColumn("ID User");
         tblDosen.setModel(model);
         try {
             Database db = new Database();
-            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM dosen");
+            // FITUR BARU: Menggunakan JOIN untuk menarik nama_prodi dari tabel prodi
+            String sql = "SELECT d.nidn, d.nama_dosen, d.id_prodi, p.nama_prodi, d.id_user " +
+                         "FROM dosen d LEFT JOIN prodi p ON d.id_prodi = p.id_prodi";
+            java.sql.ResultSet rs = db.readDBSafe(sql);
+            
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{ rs.getString("nidn"), rs.getString("nama_dosen"), rs.getString("id_prodi"), rs.getString("id_user") });
+                // Rangkai teks agar persis seperti di ComboBox (misal: "1 - Teknik Informatika")
+                String namaProdi = rs.getString("nama_prodi") != null ? rs.getString("nama_prodi") : "Tidak Ada/Dihapus";
+                String prodiTampil = rs.getString("id_prodi") + " - " + namaProdi;
+                
+                model.addRow(new Object[]{ 
+                    rs.getString("nidn"), 
+                    rs.getString("nama_dosen"), 
+                    prodiTampil, // <--- Masukkan teks yang sudah dirangkai
+                    rs.getString("id_user") 
+                });
             }
-        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
+        } catch (Exception e) { System.err.println("Terjadi Error di tampilData: " + e.getMessage()); }
     }
     
     
@@ -297,14 +310,9 @@ private void loadComboBox() {
             txtNamaDosen.setText(tblDosen.getValueAt(baris, 1).toString());
             txtNidn.setEditable(false); // Kunci NIDN
             
-            // Set Dropdown Prodi (Kolom ke-3, index 2)
-            String prodiDicari = tblDosen.getValueAt(baris, 2).toString();
-            for (int i = 0; i < cbProdi.getItemCount(); i++) {
-                if (cbProdi.getItemAt(i).toString().startsWith(prodiDicari + " -")) {
-                    cbProdi.setSelectedIndex(i);
-                    break;
-                }
-            }
+            // Set Dropdown Prodi (Sekarang jauh lebih simpel karena teksnya sudah sama persis!)
+            String prodiDariTabel = tblDosen.getValueAt(baris, 2).toString();
+            cbProdi.setSelectedItem(prodiDariTabel);
         }
         btnSimpan.setText("Ubah Data");
     }//GEN-LAST:event_tblDosenMouseClicked
@@ -329,18 +337,31 @@ private void loadComboBox() {
     }//GEN-LAST:event_btnHapusActionPerformed
 
     private void btnCariActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCariActionPerformed
-        // TODO add your handling code here:
-      String keyword = "%" + txtCari.getText().trim() + "%";
+       String keyword = "%" + txtCari.getText().trim() + "%";
         javax.swing.table.DefaultTableModel model = (javax.swing.table.DefaultTableModel) tblDosen.getModel();
         model.setRowCount(0); 
+        
         try {
             Database db = new Database();
-            java.sql.ResultSet rs = db.readDBSafe("SELECT * FROM dosen WHERE nidn LIKE ? OR nama_dosen LIKE ?", keyword, keyword);
+            // Kueri JOIN yang sama untuk fitur pencarian
+            String sql = "SELECT d.nidn, d.nama_dosen, d.id_prodi, p.nama_prodi, d.id_user " +
+                         "FROM dosen d LEFT JOIN prodi p ON d.id_prodi = p.id_prodi " +
+                         "WHERE d.nidn LIKE ? OR d.nama_dosen LIKE ?";
+            java.sql.ResultSet rs = db.readDBSafe(sql, keyword, keyword);
+            
             while (rs != null && rs.next()) {
-                model.addRow(new Object[]{ rs.getString("nidn"), rs.getString("nama_dosen"), rs.getString("id_prodi"), rs.getString("id_user") });
+                String namaProdi = rs.getString("nama_prodi") != null ? rs.getString("nama_prodi") : "Tidak Ada/Dihapus";
+                String prodiTampil = rs.getString("id_prodi") + " - " + namaProdi;
+                
+                model.addRow(new Object[]{ 
+                    rs.getString("nidn"), 
+                    rs.getString("nama_dosen"), 
+                    prodiTampil, 
+                    rs.getString("id_user") 
+                });
             }
             if (model.getRowCount() == 0) tampilData();
-        } catch (Exception e) { System.err.println("Terjadi Error: " + e.getMessage()); }
+        } catch (Exception e) { System.err.println("Terjadi Error di btnCari: " + e.getMessage()); }
     }//GEN-LAST:event_btnCariActionPerformed
 
     private void txtFilterProdiKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_txtFilterProdiKeyReleased
