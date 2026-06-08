@@ -176,8 +176,7 @@ public class PanelPeriode extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnSimpanActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSimpanActionPerformed
-        // TODO add your handling code here:
-        String tahun = txtTahunAjaran.getText().trim();
+       String tahun = txtTahunAjaran.getText().trim();
         String semester = cbSemester.getSelectedItem().toString();
         String status = cbStatus.getSelectedItem().toString();
 
@@ -185,6 +184,15 @@ public class PanelPeriode extends javax.swing.JPanel {
             javax.swing.JOptionPane.showMessageDialog(this, "Tahun Ajaran tidak boleh kosong!");
             return;
         }
+
+        // --- FITUR BARU: Validasi Regex Format Tahun Ajaran (YYYY/YYYY) ---
+        if (!tahun.matches("^\\d{4}/\\d{4}$")) {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "Format Tahun Ajaran tidak valid!\nHarus menggunakan format 4 angka diikuti garis miring dan 4 angka.\nContoh: 2026/2027", 
+                "Validasi Format", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return; // Hentikan proses simpan jika salah ketik
+        }
+        // ------------------------------------------------------------------
 
         Database db = new Database();
         try {

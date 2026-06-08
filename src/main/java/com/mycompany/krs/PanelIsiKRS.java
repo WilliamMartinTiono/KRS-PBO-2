@@ -45,8 +45,17 @@ private String idPeriodeAktif = "";
         
         try {
             Database db = new Database();
-            java.sql.ResultSet rsMhs = db.readDBSafe("SELECT nama_mhs FROM mahasiswa WHERE nim = ?", nim);
-            if(rsMhs != null && rsMhs.next()) lblNama.setText(rsMhs.getString("nama_mhs"));
+            // FITUR BARU: Tarik data Mahasiswa sekaligus nama Dosen Walinya
+            String sql = "SELECT m.nama_mhs, d.nama_dosen FROM mahasiswa m " +
+                         "LEFT JOIN dosen d ON m.id_dosen_wali = d.nidn WHERE m.nim = ?";
+            java.sql.ResultSet rsMhs = db.readDBSafe(sql, nim);
+            if(rsMhs != null && rsMhs.next()) {
+                lblNama.setText(rsMhs.getString("nama_mhs"));
+                
+                // Pasang ke Label yang baru saja kamu buat di Design
+                String namaDosen = rsMhs.getString("nama_dosen");
+                lblDosenWali.setText("Dosen Wali: " + (namaDosen != null ? namaDosen : "Belum Ditentukan"));
+            }
             
             java.sql.ResultSet rsPer = db.readDBSafe("SELECT id_periode, semester, tahun_ajaran FROM periode WHERE status_krs = 'Buka'");
             if(rsPer != null && rsPer.next()) {
@@ -63,7 +72,6 @@ private String idPeriodeAktif = "";
                 "Error Sistem", 
                 javax.swing.JOptionPane.ERROR_MESSAGE);
                 
-            // Kunci tombol keamanan agar tidak terjadi transaksi gaib
             btnAjukan.setEnabled(false); 
             btnAmbil.setEnabled(false);
         }
@@ -73,14 +81,15 @@ private String idPeriodeAktif = "";
         modelTersedia.setRowCount(0);
         try {
             Database db = new Database();
-            // FITUR BARU: Hanya ambil kelas yang berada di periode yang sedang aktif (Buka)
-            String sql = "SELECT k.id_kelas, mk.kode_mk, mk.nama_mk, d.nama_dosen, k.hari, k.jam, k.ruang, mk.sks, k.kuota " +
+            // FITUR BARU: Menghitung sisa kuota secara Real-Time dengan subquery 'terdaftar'
+            String sql = "SELECT k.id_kelas, mk.kode_mk, mk.nama_mk, d.nama_dosen, k.hari, k.jam, k.ruang, mk.sks, " +
+                         "k.kuota, " +
+                         "(SELECT COUNT(*) FROM krs_detail kd JOIN krs_header kh ON kd.id_krs = kh.id_krs WHERE kd.id_kelas = k.id_kelas AND kh.status_validasi != 'Ditolak') AS terdaftar " +
                          "FROM kelas k " +
                          "JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk " +
                          "JOIN dosen d ON k.nidn = d.nidn " +
-                         "WHERE k.kuota > 0 AND k.id_periode = ?"; // <--- Filter rahasianya di sini
+                         "WHERE k.id_periode = ? HAVING (k.kuota - terdaftar) > 0";
             
-            // Masukkan variabel idPeriodeAktif (yang didapat dari loadDataMahasiswa) ke dalam eksekusi kueri
             java.sql.ResultSet rs = db.readDBSafe(sql, idPeriodeAktif);
             
             while(rs != null && rs.next()) {
@@ -90,9 +99,15 @@ private String idPeriodeAktif = "";
                     if(modelKrs.getValueAt(i, 0).toString().equals(idKelas)){ sudahDiambil = true; break; }
                 }
                 if(!sudahDiambil) {
+                    // Kalkulasi teks kuota agar tampil keren (misal: "38 (dari 40)")
+                    int kuotaAsli = rs.getInt("kuota");
+                    int terdaftar = rs.getInt("terdaftar");
+                    int sisaKuota = kuotaAsli - terdaftar;
+
                     modelTersedia.addRow(new Object[]{
                         idKelas, rs.getString("kode_mk"), rs.getString("nama_mk"), rs.getString("nama_dosen"),
-                        rs.getString("hari"), rs.getString("jam"), rs.getString("ruang"), rs.getString("sks"), rs.getString("kuota")
+                        rs.getString("hari"), rs.getString("jam"), rs.getString("ruang"), rs.getString("sks"), 
+                        sisaKuota + " (dari " + kuotaAsli + ")" // <--- Kolom kuota diperbarui
                     });
                 }
             }
@@ -258,6 +273,8 @@ private String idPeriodeAktif = "";
         jLabel4 = new javax.swing.JLabel();
         lblTotalSks = new javax.swing.JLabel();
         btnAjukan = new javax.swing.JButton();
+        jLabel5 = new javax.swing.JLabel();
+        lblDosenWali = new javax.swing.JLabel();
 
         jLabel1.setText("NIM                              :");
 
@@ -322,6 +339,10 @@ private String idPeriodeAktif = "";
             }
         });
 
+        jLabel5.setText("Dosen Wali                 :");
+
+        lblDosenWali.setText("jLabel6");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -340,11 +361,6 @@ private String idPeriodeAktif = "";
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(1, 1, 1)
-                                .addComponent(jLabel3)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(lblPeriode))
-                            .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel4)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lblTotalSks))
@@ -356,7 +372,17 @@ private String idPeriodeAktif = "";
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel1)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(lblNim)))
+                                .addComponent(lblNim))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(1, 1, 1)
+                                        .addComponent(jLabel3))
+                                    .addComponent(jLabel5))
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(lblDosenWali)
+                                    .addComponent(lblPeriode))))
                         .addGap(0, 308, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -380,12 +406,17 @@ private String idPeriodeAktif = "";
                         .addGap(162, 162, 162)
                         .addComponent(btnAmbil)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnBatal))
-                    .addGroup(layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 398, Short.MAX_VALUE)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))))
+                        .addComponent(btnBatal)
+                        .addGap(0, 218, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(jLabel5)
+                            .addComponent(lblDosenWali))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 394, Short.MAX_VALUE)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
@@ -590,8 +621,10 @@ private String idPeriodeAktif = "";
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
+    private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JLabel lblDosenWali;
     private javax.swing.JLabel lblNama;
     private javax.swing.JLabel lblNim;
     private javax.swing.JLabel lblPeriode;
