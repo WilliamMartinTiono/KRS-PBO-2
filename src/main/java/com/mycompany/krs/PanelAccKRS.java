@@ -68,8 +68,6 @@ public class PanelAccKRS extends javax.swing.JPanel {
         jLabel1 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tblKrsPending = new javax.swing.JTable();
-        btnSetuju = new javax.swing.JButton();
-        btnTolak = new javax.swing.JButton();
         btnRefresh = new javax.swing.JButton();
         btnDetail = new javax.swing.JButton();
         btnValidasi = new javax.swing.JButton();
@@ -88,20 +86,6 @@ public class PanelAccKRS extends javax.swing.JPanel {
             }
         ));
         jScrollPane1.setViewportView(tblKrsPending);
-
-        btnSetuju.setText("Setujui KRS");
-        btnSetuju.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSetujuActionPerformed(evt);
-            }
-        });
-
-        btnTolak.setText("Tolak / Kembalikan");
-        btnTolak.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnTolakActionPerformed(evt);
-            }
-        });
 
         btnRefresh.setText("Refresh");
         btnRefresh.addActionListener(new java.awt.event.ActionListener() {
@@ -140,12 +124,7 @@ public class PanelAccKRS extends javax.swing.JPanel {
                         .addContainerGap())
                     .addGroup(layout.createSequentialGroup()
                         .addGap(6, 6, 6)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(btnValidasi, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(btnSetuju)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnTolak)))
+                        .addComponent(btnValidasi, javax.swing.GroupLayout.PREFERRED_SIZE, 227, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnDetail)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -161,92 +140,12 @@ public class PanelAccKRS extends javax.swing.JPanel {
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 381, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnSetuju)
-                    .addComponent(btnTolak)
                     .addComponent(btnRefresh)
-                    .addComponent(btnDetail))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(btnValidasi)
-                .addContainerGap(35, Short.MAX_VALUE))
+                    .addComponent(btnDetail)
+                    .addComponent(btnValidasi))
+                .addContainerGap(64, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
-
-    private void btnSetujuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSetujuActionPerformed
-        // TODO add your handling code here:
-        int baris = tblKrsPending.getSelectedRow();
-        if (baris == -1) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Pilih mahasiswa di tabel terlebih dahulu!");
-            return;
-        }
-
-        String idKrs = tblKrsPending.getValueAt(baris, 0).toString();
-        String namaMhs = tblKrsPending.getValueAt(baris, 2).toString();
-
-        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin ingin MENYETUJUI KRS milik " + namaMhs + "?", "Konfirmasi Validasi", javax.swing.JOptionPane.YES_NO_OPTION);
-        
-        if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
-            Database db = new Database();
-            if (db.executeDBSafe("UPDATE krs_header SET status_validasi = 'Disetujui' WHERE id_krs = ?", idKrs)) {
-                javax.swing.JOptionPane.showMessageDialog(this, "KRS Berhasil Disetujui!");
-                tampilDataPending(); // Segarkan tabel
-            }
-        }
-    }//GEN-LAST:event_btnSetujuActionPerformed
-
-    private void btnTolakActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnTolakActionPerformed
-        // TODO add your handling code here:
-        int baris = tblKrsPending.getSelectedRow();
-        if (baris == -1) {
-            javax.swing.JOptionPane.showMessageDialog(this, "Pilih mahasiswa di tabel terlebih dahulu!");
-            return;
-        }
-
-        String idKrs = tblKrsPending.getValueAt(baris, 0).toString();
-        String namaMhs = tblKrsPending.getValueAt(baris, 2).toString();
-
-        int konfirmasi = javax.swing.JOptionPane.showConfirmDialog(this, "Yakin ingin MENOLAK KRS milik " + namaMhs + "?", "Konfirmasi Validasi", javax.swing.JOptionPane.YES_NO_OPTION);
-        
-        if (konfirmasi == javax.swing.JOptionPane.YES_OPTION) {
-            // FITUR BARU: Minta Alasan Penolakan ke Dosen
-            String catatan = javax.swing.JOptionPane.showInputDialog(this, 
-                "Masukkan Alasan Penolakan:\n(Misal: SKS melebihi batas, hapus 1 matkul)", 
-                "Catatan Dosen Wali", 
-                javax.swing.JOptionPane.QUESTION_MESSAGE);
-            
-            // Jika dosen menekan tombol 'Cancel' atau menyilang kotak alasan, batalkan penolakan
-            if (catatan == null) {
-                return; 
-            }
-
-            Database db = new Database();
-            try {
-                if (!db.beginTransaction()) {
-                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal memulai transaksi!"); return;
-                }
-                
-                // 1. Update status dan masukkan catatan dosen
-                boolean okHeader = db.executeDBSafe("UPDATE krs_header SET status_validasi = 'Ditolak', catatan_dosen = ? WHERE id_krs = ?", catatan, idKrs);
-                
-                // 2. Kembalikan kuota kelas
-                boolean okKuota = db.executeDBSafe("UPDATE kelas SET kuota = kuota + 1 WHERE id_kelas IN (SELECT id_kelas FROM krs_detail WHERE id_krs = ?)", idKrs);
-                
-                // 3. Bersihkan keranjang
-                boolean okDetail = db.executeDBSafe("DELETE FROM krs_detail WHERE id_krs = ?", idKrs);
-
-                if (okHeader && okKuota && okDetail) {
-                    db.commit();
-                    javax.swing.JOptionPane.showMessageDialog(this, "KRS telah Ditolak. Catatan penolakan berhasil dikirim ke mahasiswa!");
-                    tampilDataPending();
-                } else {
-                    db.rollback();
-                    javax.swing.JOptionPane.showMessageDialog(this, "Gagal memproses penolakan KRS.");
-                }
-            } catch (Exception e) {
-                db.rollback();
-                System.err.println("Error tolak KRS: " + e.getMessage());
-            }
-        }
-    }//GEN-LAST:event_btnTolakActionPerformed
 
     private void btnRefreshActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRefreshActionPerformed
         // TODO add your handling code here:
@@ -420,8 +319,6 @@ int hasil = javax.swing.JOptionPane.showConfirmDialog(this, panelDialog, "Valida
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnDetail;
     private javax.swing.JButton btnRefresh;
-    private javax.swing.JButton btnSetuju;
-    private javax.swing.JButton btnTolak;
     private javax.swing.JButton btnValidasi;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JScrollPane jScrollPane1;
