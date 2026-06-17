@@ -21,6 +21,11 @@
     <artifactId>flatlaf</artifactId>
     <version>3.4</version>
     </dependency>
+    <dependency>
+            <groupId>net.sf.jasperreports</groupId>
+            <artifactId>jasperreports</artifactId>
+            <version>6.20.0</version>
+        </dependency>
     </dependencies>
     
 </project>

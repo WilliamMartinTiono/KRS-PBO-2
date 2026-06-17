@@ -3,7 +3,8 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package com.mycompany.krs;
-
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.view.*;
 /**
  *
  * @author User
@@ -132,6 +133,7 @@ public class PanelLaporan extends javax.swing.JPanel {
         jPanel4 = new javax.swing.JPanel();
         jScrollPane4 = new javax.swing.JScrollPane();
         tblRuang = new javax.swing.JTable();
+        btnCetakAdmin = new javax.swing.JButton();
 
         cbPeriode.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
@@ -248,6 +250,13 @@ public class PanelLaporan extends javax.swing.JPanel {
 
         jTabbedPane1.addTab("Jadwal Kelas", jPanel4);
 
+        btnCetakAdmin.setText("Cetak");
+        btnCetakAdmin.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCetakAdminActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -260,7 +269,9 @@ public class PanelLaporan extends javax.swing.JPanel {
                                 .addContainerGap()
                                 .addComponent(cbPeriode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(btnTampil))
+                                .addComponent(btnTampil)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(btnCetakAdmin))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(314, 314, 314)
                                 .addComponent(jLabel1)))
@@ -278,7 +289,8 @@ public class PanelLaporan extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(cbPeriode, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnTampil))
+                    .addComponent(btnTampil)
+                    .addComponent(btnCetakAdmin))
                 .addGap(18, 18, 18)
                 .addComponent(jTabbedPane1)
                 .addContainerGap())
@@ -290,8 +302,61 @@ public class PanelLaporan extends javax.swing.JPanel {
         tampilkanSemuaLaporan();
     }//GEN-LAST:event_btnTampilActionPerformed
 
+    private void btnCetakAdminActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCetakAdminActionPerformed
+      if (cbPeriode.getSelectedItem() == null) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Pilih periode terlebih dahulu!");
+            return;
+        }
+
+        String idPeriode = cbPeriode.getSelectedItem().toString().split("-")[0];
+
+        try {
+            // 1. CEK KONEKSI DATABASE
+            Database db = new Database();
+            if (db.getConnection() == null) {
+                javax.swing.JOptionPane.showMessageDialog(this, "GAGAL: Koneksi Database terputus atau bernilai null!");
+                return;
+            }
+            
+            // 2. SIAPKAN PARAMETER
+            java.util.HashMap<String, Object> parameter = new java.util.HashMap<>();
+            parameter.put("p_id_periode", idPeriode);
+            
+            // 3. CARI LOKASI FILE (Khusus Proyek Maven)
+            java.io.File file = new java.io.File("src/main/java/com/mycompany/krs/LaporanKrsAdmin.jrxml");
+            
+            // Jika tidak ada di folder Maven, coba di folder biasa
+            if (!file.exists()) {
+                file = new java.io.File("src/com/mycompany/krs/LaporanKrsAdmin.jrxml");
+            }
+            
+            // Jika benar-benar tidak ada
+            if (!file.exists()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "GAGAL: File LaporanKrsAdmin.jrxml tidak ditemukan!\nPastikan file sudah dibuat.");
+                return;
+            }
+            
+            // 4. PROSES BACA FILE
+            java.io.InputStream fileJrxml = new java.io.FileInputStream(file);
+
+            // 5. MESIN COMPILE & CETAK
+            net.sf.jasperreports.engine.JasperReport jasperReport = net.sf.jasperreports.engine.JasperCompileManager.compileReport(fileJrxml);
+            net.sf.jasperreports.engine.JasperPrint jasperPrint = net.sf.jasperreports.engine.JasperFillManager.fillReport(jasperReport, parameter, db.getConnection());
+            
+            // 6. TAMPILKAN
+            net.sf.jasperreports.view.JasperViewer.viewReport(jasperPrint, false);
+
+        } catch (Exception e) {
+            // Tampilkan error SANGAT DETAIL ke layar
+            String namaError = e.toString();
+            String barisError = (e.getStackTrace().length > 0) ? e.getStackTrace()[0].toString() : "Tidak diketahui";
+            javax.swing.JOptionPane.showMessageDialog(this, "Terjadi Error Detail:\n" + namaError + "\n\nLokasi: " + barisError);
+        }
+    }//GEN-LAST:event_btnCetakAdminActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCetakAdmin;
     private javax.swing.JButton btnTampil;
     private javax.swing.JComboBox<String> cbPeriode;
     private javax.swing.JLabel jLabel1;

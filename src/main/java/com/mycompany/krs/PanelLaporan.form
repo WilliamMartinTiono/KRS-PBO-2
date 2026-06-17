@@ -25,6 +25,8 @@
                               <Component id="cbPeriode" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
                               <Component id="btnTampil" min="-2" max="-2" attributes="0"/>
+                              <EmptySpace max="-2" attributes="0"/>
+                              <Component id="btnCetakAdmin" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <EmptySpace min="-2" pref="314" max="-2" attributes="0"/>
@@ -51,6 +53,7 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="cbPeriode" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="btnTampil" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="btnCetakAdmin" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="jTabbedPane1" max="32767" attributes="0"/>
@@ -274,5 +277,13 @@
         </Container>
       </SubComponents>
     </Container>
+    <Component class="javax.swing.JButton" name="btnCetakAdmin">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Cetak"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnCetakAdminActionPerformed"/>
+      </Events>
+    </Component>
   </SubComponents>
 </Form>
