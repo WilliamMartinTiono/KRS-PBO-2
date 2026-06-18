@@ -322,17 +322,39 @@ public class PanelLaporan extends javax.swing.JPanel {
             java.util.HashMap<String, Object> parameter = new java.util.HashMap<>();
             parameter.put("p_id_periode", idPeriode);
             
-            // 3. CARI LOKASI FILE (Khusus Proyek Maven)
-            java.io.File file = new java.io.File("src/main/java/com/mycompany/krs/LaporanKrsAdmin.jrxml");
+            // ---------------------------------------------------------
+            // FIX: LOGIKA PEMILIHAN FILE JRXML BERDASARKAN TAB AKTIF
+            // ---------------------------------------------------------
+            int tabAktif = jTabbedPane1.getSelectedIndex();
+            String namaFileJrxml = "";
             
-            // Jika tidak ada di folder Maven, coba di folder biasa
+            switch (tabAktif) {
+                case 0:
+                    namaFileJrxml = "LaporanKrsAdmin.jrxml"; // Tab 0: KRS
+                    break;
+                case 1:
+                    namaFileJrxml = "LaporanBelumKrs.jrxml"; // Tab 1: Belum KRS
+                    break;
+                case 2:
+                    namaFileJrxml = "LaporanKapasitas.jrxml"; // Tab 2: Daftar Kelas
+                    break;
+                case 3:
+                    namaFileJrxml = "LaporanRuang.jrxml"; // Tab 3: Jadwal Kelas
+                    break;
+                default:
+                    namaFileJrxml = "LaporanKrsAdmin.jrxml";
+            }
+            // ---------------------------------------------------------
+
+            // 3. CARI LOKASI FILE SECARA DINAMIS
+            java.io.File file = new java.io.File("src/main/java/com/mycompany/krs/" + namaFileJrxml);
+            
             if (!file.exists()) {
-                file = new java.io.File("src/com/mycompany/krs/LaporanKrsAdmin.jrxml");
+                file = new java.io.File("src/com/mycompany/krs/" + namaFileJrxml);
             }
             
-            // Jika benar-benar tidak ada
             if (!file.exists()) {
-                javax.swing.JOptionPane.showMessageDialog(this, "GAGAL: File LaporanKrsAdmin.jrxml tidak ditemukan!\nPastikan file sudah dibuat.");
+                javax.swing.JOptionPane.showMessageDialog(this, "GAGAL: File " + namaFileJrxml + " tidak ditemukan!\nPastikan file tersebut sudah dibuat.");
                 return;
             }
             
@@ -347,7 +369,6 @@ public class PanelLaporan extends javax.swing.JPanel {
             net.sf.jasperreports.view.JasperViewer.viewReport(jasperPrint, false);
 
         } catch (Exception e) {
-            // Tampilkan error SANGAT DETAIL ke layar
             String namaError = e.toString();
             String barisError = (e.getStackTrace().length > 0) ? e.getStackTrace()[0].toString() : "Tidak diketahui";
             javax.swing.JOptionPane.showMessageDialog(this, "Terjadi Error Detail:\n" + namaError + "\n\nLokasi: " + barisError);

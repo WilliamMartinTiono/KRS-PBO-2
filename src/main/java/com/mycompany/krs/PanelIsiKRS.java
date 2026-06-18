@@ -362,7 +362,6 @@ private String idPeriodeAktif = "";
                                 .addComponent(jLabel4)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(lblTotalSks))
-                            .addComponent(btnAjukan)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -380,7 +379,8 @@ private String idPeriodeAktif = "";
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(lblDosenWali)
-                                    .addComponent(lblPeriode))))
+                                    .addComponent(lblPeriode)))
+                            .addComponent(btnAjukan))
                         .addGap(0, 308, Short.MAX_VALUE)))
                 .addContainerGap())
         );

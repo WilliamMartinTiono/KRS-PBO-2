@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="LaporanKapasitas" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="55555555-5555-5555-5555-555555555555">
+    <parameter name="p_id_periode" class="java.lang.String"/>
+    <queryString>
+        <![CDATA[SELECT mk.nama_mk, d.nama_dosen, k.hari, k.jam, k.kuota, 
+                 (SELECT COUNT(*) FROM krs_detail kd JOIN krs_header kh ON kd.id_krs = kh.id_krs WHERE kd.id_kelas = k.id_kelas AND kh.status_validasi != 'Ditolak') AS terisi 
+                 FROM kelas k JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk JOIN dosen d ON k.nidn = d.nidn 
+                 WHERE k.id_periode = $P{p_id_periode} ORDER BY terisi DESC]]>
+    </queryString>
+    <field name="nama_mk" class="java.lang.String"/>
+    <field name="nama_dosen" class="java.lang.String"/>
+    <field name="hari" class="java.lang.String"/>
+    <field name="jam" class="java.lang.String"/>
+    <field name="kuota" class="java.lang.Integer"/>
+    <field name="terisi" class="java.lang.Long"/>
+    <title>
+        <band height="60" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="10" width="555" height="30" uuid="66666666-6666-6666-6666-666666666666"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="16" isBold="true"/>
+                </textElement>
+                <text><![CDATA[LAPORAN KAPASITAS KELAS MAHASISWA]]></text>
+            </staticText>
+        </band>
+    </title>
+    <columnHeader>
+        <band height="20" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="0" width="135" height="20" uuid="77777777-7777-7777-7777-777777777771"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Mata Kuliah]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="135" y="0" width="140" height="20" uuid="77777777-7777-7777-7777-777777777772"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Dosen]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="275" y="0" width="100" height="20" uuid="77777777-7777-7777-7777-777777777773"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Waktu]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="375" y="0" width="60" height="20" uuid="77777777-7777-7777-7777-777777777774"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Kuota]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="435" y="0" width="60" height="20" uuid="77777777-7777-7777-7777-777777777775"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Terisi]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="495" y="0" width="60" height="20" uuid="77777777-7777-7777-7777-777777777776"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Sisa]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+    <detail>
+        <band height="20" splitType="Stretch">
+            <textField>
+                <reportElement x="0" y="0" width="135" height="20" uuid="88888888-8888-8888-8888-888888888881"/>
+                <box leftPadding="5"><pen lineWidth="0.5"/></box>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{nama_mk}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="135" y="0" width="140" height="20" uuid="88888888-8888-8888-8888-888888888882"/>
+                <box leftPadding="5"><pen lineWidth="0.5"/></box>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{nama_dosen}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="275" y="0" width="100" height="20" uuid="88888888-8888-8888-8888-888888888883"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{hari} + ", " + $F{jam}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="375" y="0" width="60" height="20" uuid="88888888-8888-8888-8888-888888888884"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{kuota} + ""]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="435" y="0" width="60" height="20" uuid="88888888-8888-8888-8888-888888888885"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{terisi} + ""]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="495" y="0" width="60" height="20" uuid="88888888-8888-8888-8888-888888888886"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[($F{kuota}.intValue() - $F{terisi}.intValue()) + ""]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>

@@ -1,0 +1,14 @@
+<parameter name="p_nim" class="java.lang.String"/>
+    <parameter name="p_id_periode" class="java.lang.String"/>
+    <queryString>
+        <![CDATA[SELECT k.nim, m.nama_mhs, p.semester, p.tahun_ajaran, k.total_sks, k.status_validasi, 
+                        mk.kode_mk, mk.nama_mk, mk.sks, d.nama_dosen, kl.hari, kl.jam
+                 FROM krs_header k 
+                 JOIN mahasiswa m ON k.nim = m.nim
+                 JOIN periode p ON k.id_periode = p.id_periode
+                 JOIN krs_detail kd ON k.id_krs = kd.id_krs
+                 JOIN kelas kl ON kd.id_kelas = kl.id_kelas
+                 JOIN mata_kuliah mk ON kl.kode_mk = mk.kode_mk
+                 JOIN dosen d ON kl.nidn = d.nidn
+                 WHERE k.nim = $P{p_nim} AND k.id_periode = $P{p_id_periode}]]>
+    </queryString>

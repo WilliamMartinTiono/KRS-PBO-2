@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="LaporanRuang" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="99999999-9999-9999-9999-999999999999">
+    <parameter name="p_id_periode" class="java.lang.String"/>
+    <queryString>
+        <![CDATA[SELECT k.hari, k.jam, k.ruang, mk.nama_mk, d.nama_dosen 
+                 FROM kelas k JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk JOIN dosen d ON k.nidn = d.nidn 
+                 WHERE k.id_periode = $P{p_id_periode} 
+                 ORDER BY FIELD(k.hari,'Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'), k.jam]]>
+    </queryString>
+    <field name="hari" class="java.lang.String"/>
+    <field name="jam" class="java.lang.String"/>
+    <field name="ruang" class="java.lang.String"/>
+    <field name="nama_mk" class="java.lang.String"/>
+    <field name="nama_dosen" class="java.lang.String"/>
+    <title>
+        <band height="60" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="10" width="555" height="30" uuid="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="16" isBold="true"/>
+                </textElement>
+                <text><![CDATA[LAPORAN PENGGUNAAN RUANG KELAS]]></text>
+            </staticText>
+        </band>
+    </title>
+    <columnHeader>
+        <band height="20" splitType="Stretch">
+            <staticText>
+                <reportElement x="0" y="0" width="70" height="20" uuid="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb1"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Hari]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="70" y="0" width="85" height="20" uuid="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb2"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Jam]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="155" y="0" width="80" height="20" uuid="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb3"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Ruangan]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="235" y="0" width="160" height="20" uuid="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb4"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Mata Kuliah]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="395" y="0" width="160" height="20" uuid="bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbb5"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Dosen]]></text>
+            </staticText>
+        </band>
+    </columnHeader>
+    <detail>
+        <band height="20" splitType="Stretch">
+            <textField>
+                <reportElement x="0" y="0" width="70" height="20" uuid="cccccccc-cccc-cccc-cccc-ccccccccccc1"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{hari}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="70" y="0" width="85" height="20" uuid="cccccccc-cccc-cccc-cccc-ccccccccccc2"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{jam}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="155" y="0" width="80" height="20" uuid="cccccccc-cccc-cccc-cccc-ccccccccccc3"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{ruang}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="235" y="0" width="160" height="20" uuid="cccccccc-cccc-cccc-cccc-ccccccccccc4"/>
+                <box leftPadding="5"><pen lineWidth="0.5"/></box>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{nama_mk}]]></textFieldExpression>
+            </textField>
+            <textField>
+                <reportElement x="395" y="0" width="160" height="20" uuid="cccccccc-cccc-cccc-cccc-ccccccccccc5"/>
+                <box leftPadding="5"><pen lineWidth="0.5"/></box>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{nama_dosen}]]></textFieldExpression>
+            </textField>
+        </band>
+    </detail>
+</jasperReport>
