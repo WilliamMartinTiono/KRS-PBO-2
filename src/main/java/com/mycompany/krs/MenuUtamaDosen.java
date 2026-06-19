@@ -34,6 +34,7 @@ public class MenuUtamaDosen extends javax.swing.JFrame {
         jLabel2 = new javax.swing.JLabel();
         btnIsiKrs8 = new javax.swing.JButton();
         btnLogout8 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -56,6 +57,13 @@ public class MenuUtamaDosen extends javax.swing.JFrame {
             }
         });
 
+        jButton1.setText("Data Bimbingan");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel10Layout = new javax.swing.GroupLayout(jPanel10);
         jPanel10.setLayout(jPanel10Layout);
         jPanel10Layout.setHorizontalGroup(
@@ -71,6 +79,9 @@ public class MenuUtamaDosen extends javax.swing.JFrame {
                 .addGap(43, 43, 43)
                 .addComponent(jLabel2)
                 .addGap(0, 0, Short.MAX_VALUE))
+            .addGroup(jPanel10Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel10Layout.setVerticalGroup(
             jPanel10Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -79,6 +90,8 @@ public class MenuUtamaDosen extends javax.swing.JFrame {
                 .addComponent(jLabel2)
                 .addGap(18, 18, 18)
                 .addComponent(btnIsiKrs8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btnLogout8)
                 .addContainerGap())
@@ -144,6 +157,15 @@ public class MenuUtamaDosen extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnLogout8ActionPerformed
 
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        // TODO add your handling code here:
+        panelKontenMhs.removeAll();
+        PanelBimbinganDosen panelBimbingan = new PanelBimbinganDosen();
+        panelKontenMhs.add(panelBimbingan, java.awt.BorderLayout.CENTER);
+        panelKontenMhs.revalidate();
+        panelKontenMhs.repaint();
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -172,6 +194,7 @@ public class MenuUtamaDosen extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnIsiKrs8;
     private javax.swing.JButton btnLogout8;
+    private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel10;

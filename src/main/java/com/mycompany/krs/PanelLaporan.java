@@ -311,14 +311,14 @@ public class PanelLaporan extends javax.swing.JPanel {
         String idPeriode = cbPeriode.getSelectedItem().toString().split("-")[0];
 
         try {
-            // 1. CEK KONEKSI DATABASE
+            // 1. Cek Koneksi Database
             Database db = new Database();
             if (db.getConnection() == null) {
-                javax.swing.JOptionPane.showMessageDialog(this, "GAGAL: Koneksi Database terputus atau bernilai null!");
+                javax.swing.JOptionPane.showMessageDialog(this, "GAGAL: Koneksi Database terputus!");
                 return;
             }
             
-            // 2. SIAPKAN PARAMETER
+            // 2. Siapkan Parameter Jasper
             java.util.HashMap<String, Object> parameter = new java.util.HashMap<>();
             parameter.put("p_id_periode", idPeriode);
             
@@ -330,23 +330,23 @@ public class PanelLaporan extends javax.swing.JPanel {
             
             switch (tabAktif) {
                 case 0:
-                    namaFileJrxml = "LaporanKrsAdmin.jrxml"; // Tab 0: KRS
+                    namaFileJrxml = "LaporanKrsAdmin.jrxml"; // Tab 0: Laporan KRS
                     break;
                 case 1:
-                    namaFileJrxml = "LaporanBelumKrs.jrxml"; // Tab 1: Belum KRS
+                    namaFileJrxml = "LaporanBelumKrs.jrxml"; // Tab 1: Laporan Belum KRS
                     break;
                 case 2:
-                    namaFileJrxml = "LaporanKapasitas.jrxml"; // Tab 2: Daftar Kelas
+                    namaFileJrxml = "LaporanKapasitas.jrxml"; // Tab 2: Kapasitas Kelas
                     break;
                 case 3:
-                    namaFileJrxml = "LaporanRuang.jrxml"; // Tab 3: Jadwal Kelas
+                    namaFileJrxml = "LaporanRuang.jrxml";    // Tab 3: Penggunaan Ruang
                     break;
                 default:
-                    namaFileJrxml = "LaporanKrsAdmin.jrxml";
+                    namaFileJrxml = "LaporanKrsAdmin.jrxml"; // Fallback aman
             }
             // ---------------------------------------------------------
 
-            // 3. CARI LOKASI FILE SECARA DINAMIS
+            // 3. Cari Lokasi File Secara Dinamis
             java.io.File file = new java.io.File("src/main/java/com/mycompany/krs/" + namaFileJrxml);
             
             if (!file.exists()) {
@@ -354,18 +354,24 @@ public class PanelLaporan extends javax.swing.JPanel {
             }
             
             if (!file.exists()) {
-                javax.swing.JOptionPane.showMessageDialog(this, "GAGAL: File " + namaFileJrxml + " tidak ditemukan!\nPastikan file tersebut sudah dibuat.");
+                javax.swing.JOptionPane.showMessageDialog(this, "GAGAL: File " + namaFileJrxml + " tidak ditemukan!");
                 return;
             }
             
-            // 4. PROSES BACA FILE
+            // 4. Proses Compile & Baca File
             java.io.InputStream fileJrxml = new java.io.FileInputStream(file);
-
-            // 5. MESIN COMPILE & CETAK
             net.sf.jasperreports.engine.JasperReport jasperReport = net.sf.jasperreports.engine.JasperCompileManager.compileReport(fileJrxml);
+            
+            // 5. Isi Laporan dengan Data
             net.sf.jasperreports.engine.JasperPrint jasperPrint = net.sf.jasperreports.engine.JasperFillManager.fillReport(jasperReport, parameter, db.getConnection());
             
-            // 6. TAMPILKAN
+            // 6. Cegah Laporan Kosong (Optional, tapi disarankan)
+            if (jasperPrint.getPages().isEmpty()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Data laporan kosong untuk periode ini.");
+                return;
+            }
+            
+            // 7. Tampilkan Layar Pratinjau
             net.sf.jasperreports.view.JasperViewer.viewReport(jasperPrint, false);
 
         } catch (Exception e) {

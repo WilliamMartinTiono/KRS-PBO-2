@@ -11,6 +11,7 @@ com\mycompany\krs\PanelMahasiswa$5.class
 com\mycompany\krs\MenuUtamaAdmin$2.class
 com\mycompany\krs\PanelMatkul$2.class
 com\mycompany\krs\Login$3.class
+com\mycompany\krs\PanelCetakKrsMhs$1.class
 com\mycompany\krs\Login.class
 com\mycompany\krs\PanelDosen$7.class
 com\mycompany\krs\PanelAkun$2.class
@@ -22,6 +23,7 @@ com\mycompany\krs\PanelPeriode$1.class
 com\mycompany\krs\PanelPeriode$4.class
 com\mycompany\krs\PanelProdi$1.class
 com\mycompany\krs\PanelKelas$6.class
+com\mycompany\krs\PanelCetakKrsMhs.class
 com\mycompany\krs\Database.class
 com\mycompany\krs\PanelAkun$6.class
 com\mycompany\krs\PanelProdi$2.class
@@ -32,12 +34,12 @@ com\mycompany\krs\MenuUtamaAdmin$4.class
 com\mycompany\krs\PanelIsiKRS.class
 com\mycompany\krs\PanelDosen$2.class
 com\mycompany\krs\PanelMatkul$7.class
-com\mycompany\krs\PanelAccKRS$5.class
 com\mycompany\krs\PanelMatkul$6.class
 com\mycompany\krs\PanelProdi.class
 com\mycompany\krs\PanelKelas.class
 com\mycompany\krs\MenuUtamaMahasiswa.class
 com\mycompany\krs\PanelIsiKRS$1.class
+com\mycompany\krs\PanelBimbinganDosen$1.class
 com\mycompany\krs\PanelProdi$3.class
 com\mycompany\krs\PanelMahasiswa$6.class
 com\mycompany\krs\PanelAccKRS$4.class
@@ -47,6 +49,7 @@ com\mycompany\krs\PanelMatkul.class
 com\mycompany\krs\PanelAkun$1.class
 com\mycompany\krs\PanelAccKRS.class
 com\mycompany\krs\PanelAkun.class
+com\mycompany\krs\PanelBimbinganDosen.class
 com\mycompany\krs\PanelDosen$8.class
 com\mycompany\krs\MenuUtamaAdmin$9.class
 com\mycompany\krs\PanelIsiKRS$3.class
@@ -64,6 +67,7 @@ com\mycompany\krs\PanelMatkul$1.class
 com\mycompany\krs\PanelMatkul$4.class
 com\mycompany\krs\PanelKelas$7.class
 com\mycompany\krs\PanelAccKRS$3.class
+com\mycompany\krs\MenuUtamaDosen$3.class
 com\mycompany\krs\PanelMahasiswa$1.class
 com\mycompany\krs\MenuUtamaMahasiswa$2.class
 com\mycompany\krs\Login$4.class
@@ -89,6 +93,7 @@ com\mycompany\krs\PanelMahasiswa$2.class
 com\mycompany\krs\PanelMahasiswa$9.class
 com\mycompany\krs\MenuUtamaAdmin$1.class
 com\mycompany\krs\MenuUtamaDosen$1.class
+com\mycompany\krs\MenuUtamaMahasiswa$4.class
 com\mycompany\krs\PanelLaporan$2.class
 com\mycompany\krs\PanelPeriode$2.class
 com\mycompany\krs\PanelAkun$4.class
@@ -98,4 +103,3 @@ com\mycompany\krs\MenuUtamaDosen.class
 com\mycompany\krs\PanelKelas$2.class
 com\mycompany\krs\PanelMahasiswa$10.class
 com\mycompany\krs\MenuUtamaAdmin.class
-com\mycompany\krs\PanelIsiKRS$4.class

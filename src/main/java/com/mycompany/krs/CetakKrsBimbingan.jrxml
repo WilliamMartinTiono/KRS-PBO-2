@@ -1,8 +1,10 @@
 <parameter name="p_nim" class="java.lang.String"/>
     <parameter name="p_id_periode" class="java.lang.String"/>
-    <parameter name="p_nidn_dosen" class="java.lang.String"/> <queryString>
+    <parameter name="p_nidn_dosen" class="java.lang.String"/>
+    
+    <queryString>
         <![CDATA[SELECT k.nim, m.nama_mhs, p.semester, p.tahun_ajaran, k.status_validasi, 
-                        mk.kode_mk, mk.nama_mk, mk.sks, kd.status_acc
+                        mk.kode_mk, mk.nama_mk, mk.sks, kd.status_detail 
                  FROM krs_header k 
                  JOIN mahasiswa m ON k.nim = m.nim
                  JOIN periode p ON k.id_periode = p.id_periode
@@ -11,4 +13,15 @@
                  JOIN mata_kuliah mk ON kl.kode_mk = mk.kode_mk
                  WHERE k.nim = $P{p_nim} 
                  AND k.id_periode = $P{p_id_periode} 
-                 AND m.id_dosen_wali = $P{p_nidn_dosen}]]> </queryString>
+                 AND m.id_dosen_wali = $P{p_nidn_dosen}]]>
+    </queryString>
+    
+    <field name="nim" class="java.lang.String"/>
+    <field name="nama_mhs" class="java.lang.String"/>
+    <field name="semester" class="java.lang.String"/>
+    <field name="tahun_ajaran" class="java.lang.String"/>
+    <field name="status_validasi" class="java.lang.String"/>
+    <field name="kode_mk" class="java.lang.String"/>
+    <field name="nama_mk" class="java.lang.String"/>
+    <field name="sks" class="java.lang.Integer"/>
+    <field name="status_detail" class="java.lang.String"/>

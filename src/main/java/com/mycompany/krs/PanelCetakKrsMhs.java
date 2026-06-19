@@ -10,11 +10,57 @@ package com.mycompany.krs;
  */
 public class PanelCetakKrsMhs extends javax.swing.JPanel {
 
+    private String idPeriodeAktif = "";
+
+    private void loadDataKrs() {
+        try {
+            Database db = new Database();
+            String nim = Login.getUserLogin();
+            lblNim.setText("NIM: " + nim);
+            
+            // Cari Periode Aktif
+            java.sql.ResultSet rsPeriode = db.readDBSafe("SELECT id_periode, semester, tahun_ajaran FROM periode WHERE status_krs = 'Buka' LIMIT 1");
+            if (rsPeriode != null && rsPeriode.next()) {
+                idPeriodeAktif = rsPeriode.getString("id_periode");
+                lblPeriode.setText("Periode: " + rsPeriode.getString("semester") + " " + rsPeriode.getString("tahun_ajaran"));
+            } else {
+                lblPeriode.setText("Periode: Tidak ada periode aktif");
+                lblStatus.setText("Status: -");
+                btnCetak.setEnabled(false);
+                return;
+            }
+
+            // Cari Status KRS
+            String sql = "SELECT m.nama_mhs, k.status_validasi FROM mahasiswa m LEFT JOIN krs_header k ON m.nim = k.nim AND k.id_periode = ? WHERE m.nim = ?";
+            java.sql.ResultSet rsStatus = db.readDBSafe(sql, idPeriodeAktif, nim);
+            
+            if (rsStatus != null && rsStatus.next()) {
+                lblNama.setText("Nama: " + rsStatus.getString("nama_mhs"));
+                String status = rsStatus.getString("status_validasi");
+                
+                if (status == null) {
+                    lblStatus.setText("Status: BELUM MENGISI KRS");
+                    btnCetak.setEnabled(false);
+                } else {
+                    lblStatus.setText("Status: " + status.toUpperCase());
+                    // KUNCI KEAMANAN: Tombol hanya nyala jika status Disetujui
+                    if (status.equalsIgnoreCase("Disetujui")) {
+                        btnCetak.setEnabled(true);
+                    } else {
+                        btnCetak.setEnabled(false);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Gagal load data KRS: " + e.getMessage());
+        }
+    }
     /**
      * Creates new form PanelCetakKrsMhs
      */
     public PanelCetakKrsMhs() {
         initComponents();
+        loadDataKrs();
     }
 
     /**
@@ -26,19 +72,125 @@ public class PanelCetakKrsMhs extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        lblNim = new javax.swing.JLabel();
+        lblNama = new javax.swing.JLabel();
+        lblPeriode = new javax.swing.JLabel();
+        lblStatus = new javax.swing.JLabel();
+        btnCetak = new javax.swing.JButton();
+
+        lblNim.setText("jLabel1");
+
+        lblNama.setText("jLabel2");
+
+        lblPeriode.setText("jLabel3");
+
+        lblStatus.setText("jLabel4");
+
+        btnCetak.setText("Cetak");
+        btnCetak.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCetakActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 400, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnCetak)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                        .addComponent(lblNim)
+                        .addComponent(lblNama)
+                        .addComponent(lblStatus)
+                        .addComponent(lblPeriode)))
+                .addContainerGap(322, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 300, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(lblNim)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblNama)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblPeriode)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(lblStatus)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 183, Short.MAX_VALUE)
+                .addComponent(btnCetak)
+                .addContainerGap())
         );
     }// </editor-fold>//GEN-END:initComponents
 
+    private void btnCetakActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCetakActionPerformed
+        // TODO add your handling code here:
+        // 1. Validasi Keamanan Variabel Periode Aktif
+        // (Pastikan variabel idPeriodeAktif sudah dideklarasikan dan diisi oleh fungsi loadDataKrs() sebelumnya)
+        if (idPeriodeAktif == null || idPeriodeAktif.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(this, "Tidak ada periode aktif atau sistem gagal memuat periode.");
+            return;
+        }
+
+        try {
+            // 2. Cek Koneksi Database
+            Database db = new Database();
+            if (db.getConnection() == null) {
+                javax.swing.JOptionPane.showMessageDialog(this, "GAGAL: Koneksi Database terputus!");
+                return;
+            }
+            
+            // 3. Siapkan Parameter Jasper
+            java.util.HashMap<String, Object> parameter = new java.util.HashMap<>();
+            // Mengambil NIM mutlak dari sesi login (Sangat Aman)
+            parameter.put("p_nim", Login.getUserLogin()); 
+            // Mengambil ID Periode dari variabel panel yang dimuat saat layar dibuka
+            parameter.put("p_id_periode", idPeriodeAktif); 
+            
+            // 4. Cari Lokasi File JRXML (Mendukung path Maven maupun Ant)
+            java.io.File file = new java.io.File("src/main/java/com/mycompany/krs/CetakKrsMhs.jrxml");
+            
+            if (!file.exists()) {
+                file = new java.io.File("src/com/mycompany/krs/CetakKrsMhs.jrxml");
+            }
+            
+            if (!file.exists()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "GAGAL: File CetakKrsMhs.jrxml tidak ditemukan!");
+                return;
+            }
+            
+            // 5. Proses Compile & Baca File
+            java.io.InputStream fileJrxml = new java.io.FileInputStream(file);
+            net.sf.jasperreports.engine.JasperReport jasperReport = net.sf.jasperreports.engine.JasperCompileManager.compileReport(fileJrxml);
+            
+            // 6. Isi Laporan dengan Data
+            net.sf.jasperreports.engine.JasperPrint jasperPrint = net.sf.jasperreports.engine.JasperFillManager.fillReport(jasperReport, parameter, db.getConnection());
+            
+            // 7. Cegah Laporan Kosong Terbuka
+            if (jasperPrint.getPages().isEmpty()) {
+                javax.swing.JOptionPane.showMessageDialog(this, "Dokumen kosong! Anda belum mengambil mata kuliah apa pun di periode ini.");
+                return;
+            }
+            
+            // 8. Tampilkan Layar Pratinjau (Preview PDF)
+            // Nilai 'false' mencegah aplikasi tertutup (exitOnClose) jika user menutup jendela laporan
+            net.sf.jasperreports.view.JasperViewer.viewReport(jasperPrint, false);
+
+        } catch (Exception e) {
+            String namaError = e.toString();
+            String barisError = (e.getStackTrace().length > 0) ? e.getStackTrace()[0].toString() : "Tidak diketahui";
+            javax.swing.JOptionPane.showMessageDialog(this, "Terjadi Error Detail:\n" + namaError + "\n\nLokasi: " + barisError);
+        }
+    }//GEN-LAST:event_btnCetakActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnCetak;
+    private javax.swing.JLabel lblNama;
+    private javax.swing.JLabel lblNim;
+    private javax.swing.JLabel lblPeriode;
+    private javax.swing.JLabel lblStatus;
     // End of variables declaration//GEN-END:variables
 }

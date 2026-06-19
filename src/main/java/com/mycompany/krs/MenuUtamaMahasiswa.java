@@ -78,6 +78,7 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
         btnIsiKrs = new javax.swing.JButton();
         btnLogout = new javax.swing.JButton();
         btnJadwal = new javax.swing.JButton();
+        btnMenuCetak = new javax.swing.JButton();
         lblStatusKrs = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
@@ -109,6 +110,13 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
             }
         });
 
+        btnMenuCetak.setText("Cetak KRS");
+        btnMenuCetak.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnMenuCetakActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -121,7 +129,8 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
                         .addComponent(jLabel2))
                     .addComponent(btnIsiKrs, javax.swing.GroupLayout.DEFAULT_SIZE, 86, Short.MAX_VALUE)
                     .addComponent(btnLogout)
-                    .addComponent(btnJadwal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(btnJadwal, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addComponent(btnMenuCetak, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -133,7 +142,9 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
                 .addComponent(btnIsiKrs)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnJadwal)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 388, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(btnMenuCetak)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 359, Short.MAX_VALUE)
                 .addComponent(btnLogout)
                 .addContainerGap())
         );
@@ -221,6 +232,15 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
         panelKontenMhs.revalidate();
     }//GEN-LAST:event_btnJadwalActionPerformed
 
+    private void btnMenuCetakActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnMenuCetakActionPerformed
+        // TODO add your handling code here:
+        panelKontenMhs.removeAll();
+        PanelCetakKrsMhs panelCetak = new PanelCetakKrsMhs();
+        panelKontenMhs.add(panelCetak, java.awt.BorderLayout.CENTER);
+        panelKontenMhs.revalidate();
+        panelKontenMhs.repaint();
+    }//GEN-LAST:event_btnMenuCetakActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -250,6 +270,7 @@ public class MenuUtamaMahasiswa extends javax.swing.JFrame {
     private javax.swing.JButton btnIsiKrs;
     private javax.swing.JButton btnJadwal;
     private javax.swing.JButton btnLogout;
+    private javax.swing.JButton btnMenuCetak;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel2;
