@@ -101,11 +101,10 @@ public class PanelCetakKrsMhs extends javax.swing.JPanel {
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnCetak)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                        .addComponent(lblNim)
-                        .addComponent(lblNama)
-                        .addComponent(lblStatus)
-                        .addComponent(lblPeriode)))
+                    .addComponent(lblNim)
+                    .addComponent(lblNama)
+                    .addComponent(lblPeriode)
+                    .addComponent(lblStatus))
                 .addContainerGap(322, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(

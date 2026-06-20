@@ -20,12 +20,10 @@
               <EmptySpace max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="btnCetak" min="-2" max="-2" attributes="0"/>
-                  <Group type="103" alignment="0" groupAlignment="1" attributes="0">
-                      <Component id="lblNim" alignment="1" min="-2" max="-2" attributes="0"/>
-                      <Component id="lblNama" alignment="1" min="-2" max="-2" attributes="0"/>
-                      <Component id="lblStatus" min="-2" max="-2" attributes="0"/>
-                      <Component id="lblPeriode" alignment="1" min="-2" max="-2" attributes="0"/>
-                  </Group>
+                  <Component id="lblNim" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblNama" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblPeriode" alignment="0" min="-2" max="-2" attributes="0"/>
+                  <Component id="lblStatus" alignment="0" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace pref="322" max="32767" attributes="0"/>
           </Group>
