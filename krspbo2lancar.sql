@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 08, 2026 at 10:21 AM
+-- Generation Time: Jun 22, 2026 at 02:09 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -45,7 +45,8 @@ INSERT INTO `admin` (`id_admin`, `username`, `password`) VALUES
 (23, '26001', '782ff6c9a7d076172dccb71ad7cb72420499b665a958f4fc37331a12d64ca534'),
 (24, '26002', '61b7ccdb512a7d8fcba8112acc60d6c2b84924f5307ce446a436b4b369576a72'),
 (25, 'testadmin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-(26, '26003', 'b8d3c92f81f5fa2abd8e3b83e0a3a4c496f8337f1f6dcb5b8a0cb809ffbacdb4');
+(26, '26003', 'b8d3c92f81f5fa2abd8e3b83e0a3a4c496f8337f1f6dcb5b8a0cb809ffbacdb4'),
+(27, '26004', '776a4317020f2f08c74ce1558f9eeb52cca478674175f7fd04f82f61004b1a64');
 
 -- --------------------------------------------------------
 
@@ -93,8 +94,8 @@ CREATE TABLE `kelas` (
 INSERT INTO `kelas` (`id_kelas`, `hari`, `jam`, `ruang`, `kuota`, `id_periode`, `kode_mk`, `nidn`) VALUES
 (8, 'Selasa', '06.00-07.00', '1.05', 39, 2, 'MK1002', '2603'),
 (9, 'Selasa', '05.00-07.00', '1.01', 37, 2, 'MK1005', '2602'),
-(10, 'Selasa', '05.00-08.00', '1.02', 39, 2, 'MK1004', '2603'),
-(11, 'Senin', '15.00-17.00', '1.04', 39, 2, 'MK1004', '2601');
+(10, 'Selasa', '05.00-08.00', '1.02', 39, 6, 'MK1004', '2603'),
+(11, 'Senin', '15.00-17.00', '1.04', 39, 3, 'MK1004', '2601');
 
 -- --------------------------------------------------------
 
@@ -114,10 +115,10 @@ CREATE TABLE `krs_detail` (
 --
 
 INSERT INTO `krs_detail` (`id_krs`, `id_kelas`, `status_detail`, `catatan_mk`) VALUES
-(4, 8, 'Menunggu', NULL),
-(6, 9, 'Menunggu', NULL),
-(7, 10, 'Menunggu', NULL),
-(8, 9, 'Menunggu', NULL),
+(4, 8, 'Disetujui', NULL),
+(6, 9, 'Disetujui', NULL),
+(7, 10, 'Disetujui', NULL),
+(8, 9, 'Disetujui', NULL),
 (9, 9, 'Disetujui', NULL),
 (9, 11, 'Disetujui', NULL);
 
@@ -175,7 +176,8 @@ CREATE TABLE `mahasiswa` (
 INSERT INTO `mahasiswa` (`nim`, `angkatan`, `semester_aktif`, `status_mahasiswa`, `nama_mhs`, `alamat`, `id_prodi`, `id_dosen_wali`, `id_user`) VALUES
 ('26001', NULL, 1, 'Aktif', 'William Martin Tiono', 'asd', 3, '2602', 23),
 ('26002', NULL, 1, 'Aktif', 'Christ', '123123123', 2, '2603', 24),
-('26003', NULL, 1, 'Aktif', 'Pris', 'asd', 4, '2601', 26);
+('26003', NULL, 1, 'Aktif', 'Pris', 'asd', 4, '2601', 26),
+('26004', NULL, 1, 'Aktif', 'HENDRO', 'asasdasd', 1, '2601', 27);
 
 -- --------------------------------------------------------
 
@@ -395,7 +397,7 @@ ALTER TABLE `prodi`
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
+  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
 
 --
 -- AUTO_INCREMENT for table `kelas`
