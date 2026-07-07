@@ -194,8 +194,45 @@ public class PanelPeriode extends javax.swing.JPanel {
         }
         // ------------------------------------------------------------------
 
+        // ---> TAMBAHKAN KODE INI (WORK ORDER #2) <---
+        // --- FITUR BARU: Validasi Logika Tahun Ajaran (Tahun Ke-2 = Tahun Ke-1 + 1) ---
+        String[] bagianTahun = tahun.split("/");
+        int tahunPertama = Integer.parseInt(bagianTahun[0]);
+        int tahunKedua = Integer.parseInt(bagianTahun[1]);
+        
+        if (tahunKedua != tahunPertama + 1) {
+            javax.swing.JOptionPane.showMessageDialog(this, 
+                "Logika Tahun Ajaran tidak masuk akal!\nTahun kedua harus tepat satu tahun setelah tahun pertama.\nContoh yang benar: " + tahunPertama + "/" + (tahunPertama + 1), 
+                "Validasi Logika Akademik", javax.swing.JOptionPane.WARNING_MESSAGE);
+            return; // Hentikan proses simpan
+        }
+        // ------------------------------------------------------------------------------
+
+        // (Kode Anda selanjutnya tetap dipertahankan)
         Database db = new Database();
         try {
+            // --- FITUR BARU: Validasi Duplikat (Sebelum Transaksi) ---
+            if (btnSimpan.getText().equals("Simpan")) {
+                // (Ini kode Work Order #3 yang sudah Anda pasang)
+                java.sql.ResultSet rsCek = db.readDBSafe("SELECT COUNT(*) AS total FROM periode WHERE tahun_ajaran = ? AND semester = ?", tahun, semester);
+                if (rsCek != null && rsCek.next() && rsCek.getInt("total") > 0) {
+                    javax.swing.JOptionPane.showMessageDialog(this, 
+                        "Gagal Menyimpan!\nPeriode Akademik '" + tahun + " - " + semester + "' sudah pernah didaftarkan.", 
+                        "Peringatan Duplikasi Data", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    return; // Hentikan proses!
+                }
+            } 
+            // ---> TAMBAHKAN KODE INI (WORK ORDER #4) <---
+            else { 
+                // Jika tombol adalah "Ubah Data" (UPDATE)
+                java.sql.ResultSet rsCek = db.readDBSafe("SELECT COUNT(*) AS total FROM periode WHERE tahun_ajaran = ? AND semester = ? AND id_periode != ?", tahun, semester, idPeriodeTerpilih);
+                if (rsCek != null && rsCek.next() && rsCek.getInt("total") > 0) {
+                    javax.swing.JOptionPane.showMessageDialog(this, 
+                        "Gagal Mengubah Data!\nPeriode dengan Tahun Ajaran dan Semester tersebut sudah dimiliki oleh data lain.", 
+                        "Peringatan Duplikasi Data", javax.swing.JOptionPane.WARNING_MESSAGE);
+                    return; // Hentikan proses! Transaksi tidak akan dimulai.
+                }
+            }
             // 1. MULAI TRANSAKSI
             if (!db.beginTransaction()) {
                 javax.swing.JOptionPane.showMessageDialog(this, "Gagal memulai transaksi database!");
