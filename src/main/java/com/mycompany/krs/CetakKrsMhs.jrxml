@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CetakKrsMhs" language="java" pageWidth="595" pageHeight="842" columnWidth="555" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="12345678-1234-1234-1234-123456789013">
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="CetakKrsMhs" language="java" pageWidth="595" pageHeight="842" columnWidth="515" leftMargin="40" rightMargin="40" topMargin="40" bottomMargin="40" uuid="12345678-1234-1234-1234-123456789013">
     <parameter name="p_nim" class="java.lang.String"/>
     <parameter name="p_id_periode" class="java.lang.String"/>
     <queryString>
@@ -28,102 +28,225 @@
     <field name="jam" class="java.lang.String"/>
     
     <title>
-        <band height="80" splitType="Stretch">
+        <band height="140" splitType="Stretch">
             <staticText>
-                <reportElement x="0" y="0" width="555" height="30" uuid="11111111-2222-3333-4444-555555555555"/>
+                <reportElement x="0" y="0" width="515" height="25" uuid="11111111-2222-3333-4444-555555555501"/>
                 <textElement textAlignment="Center" verticalAlignment="Middle">
-                    <font size="16" isBold="true"/>
+                    <font size="18" isBold="true"/>
+                </textElement>
+                <text><![CDATA[UNIVERSITAS TEKNOLOGI CIVITAS]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="0" y="25" width="515" height="15" uuid="11111111-2222-3333-4444-555555555502"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="10" isBold="false"/>
+                </textElement>
+                <text><![CDATA[Jl. Pendidikan No. 123, Kota Akademik, Telp: (021) 1234567 | Web: www.civitas.ac.id]]></text>
+            </staticText>
+            <line>
+                <reportElement x="0" y="45" width="515" height="1" uuid="11111111-2222-3333-4444-555555555503"/>
+                <graphicElement>
+                    <pen lineWidth="2.0" lineStyle="Solid"/>
+                </graphicElement>
+            </line>
+            
+            <staticText>
+                <reportElement x="0" y="55" width="515" height="25" uuid="11111111-2222-3333-4444-555555555555"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font size="14" isBold="true"/>
                 </textElement>
                 <text><![CDATA[KARTU RENCANA STUDI (KRS)]]></text>
             </staticText>
+            
+            <staticText>
+                <reportElement x="0" y="90" width="80" height="20" uuid="2a2a2a2a-3333-4444-5555-666666666601"/>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[NIM]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="80" y="90" width="10" height="20" uuid="2a2a2a2a-3333-4444-5555-666666666602"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[:]]></text>
+            </staticText>
             <textField>
-                <reportElement x="0" y="30" width="555" height="20" uuid="22222222-3333-4444-5555-666666666666"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <textFieldExpression><![CDATA["NIM: " + $F{nim} + " | Nama: " + $F{nama_mhs}]]></textFieldExpression>
+                <reportElement x="90" y="90" width="170" height="20" uuid="22222222-3333-4444-5555-666666666603"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{nim}]]></textFieldExpression>
             </textField>
+            
+            <staticText>
+                <reportElement x="0" y="110" width="80" height="20" uuid="2a2a2a2a-3333-4444-5555-666666666604"/>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Nama]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="80" y="110" width="10" height="20" uuid="2a2a2a2a-3333-4444-5555-666666666605"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[:]]></text>
+            </staticText>
             <textField>
-                <reportElement x="0" y="50" width="555" height="20" uuid="33333333-4444-5555-6666-777777777777"/>
-                <textElement textAlignment="Center" verticalAlignment="Middle"/>
-                <textFieldExpression><![CDATA["Periode: " + $F{semester} + " " + $F{tahun_ajaran} + " | Status: " + $F{status_validasi}]]></textFieldExpression>
+                <reportElement x="90" y="110" width="170" height="20" uuid="22222222-3333-4444-5555-666666666606"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{nama_mhs}]]></textFieldExpression>
+            </textField>
+
+            <staticText>
+                <reportElement x="280" y="90" width="80" height="20" uuid="2a2a2a2a-3333-4444-5555-666666666607"/>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Periode]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="360" y="90" width="10" height="20" uuid="2a2a2a2a-3333-4444-5555-666666666608"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="370" y="90" width="145" height="20" uuid="33333333-4444-5555-6666-777777777701"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{semester} + " " + $F{tahun_ajaran}]]></textFieldExpression>
+            </textField>
+            
+            <staticText>
+                <reportElement x="280" y="110" width="80" height="20" uuid="2a2a2a2a-3333-4444-5555-666666666609"/>
+                <textElement verticalAlignment="Middle"><font isBold="true"/></textElement>
+                <text><![CDATA[Status KRS]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="360" y="110" width="10" height="20" uuid="2a2a2a2a-3333-4444-5555-666666666610"/>
+                <textElement verticalAlignment="Middle"/>
+                <text><![CDATA[:]]></text>
+            </staticText>
+            <textField>
+                <reportElement x="370" y="110" width="145" height="20" uuid="33333333-4444-5555-6666-777777777702"/>
+                <textElement verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA[$F{status_validasi}]]></textFieldExpression>
             </textField>
         </band>
     </title>
+    
     <columnHeader>
-        <band height="20" splitType="Stretch">
+        <band height="25" splitType="Stretch">
             <staticText>
-                <reportElement x="0" y="0" width="70" height="20" uuid="44444444-5555-6666-7777-888888888888"/>
+                <reportElement mode="Opaque" backcolor="#E6E6E6" x="0" y="0" width="60" height="25" uuid="44444444-5555-6666-7777-888888888888"/>
                 <box><pen lineWidth="0.5"/></box>
                 <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
                 <text><![CDATA[Kode MK]]></text>
             </staticText>
             <staticText>
-                <reportElement x="70" y="0" width="185" height="20" uuid="55555555-6666-7777-8888-999999999999"/>
+                <reportElement mode="Opaque" backcolor="#E6E6E6" x="60" y="0" width="165" height="25" uuid="55555555-6666-7777-8888-999999999999"/>
                 <box><pen lineWidth="0.5"/></box>
                 <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
                 <text><![CDATA[Mata Kuliah]]></text>
             </staticText>
             <staticText>
-                <reportElement x="255" y="0" width="40" height="20" uuid="66666666-7777-8888-9999-000000000000"/>
+                <reportElement mode="Opaque" backcolor="#E6E6E6" x="225" y="0" width="40" height="25" uuid="66666666-7777-8888-9999-000000000000"/>
                 <box><pen lineWidth="0.5"/></box>
                 <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
                 <text><![CDATA[SKS]]></text>
             </staticText>
             <staticText>
-                <reportElement x="295" y="0" width="160" height="20" uuid="77777777-8888-9999-0000-111111111111"/>
+                <reportElement mode="Opaque" backcolor="#E6E6E6" x="265" y="0" width="150" height="25" uuid="77777777-8888-9999-0000-111111111111"/>
                 <box><pen lineWidth="0.5"/></box>
                 <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
-                <text><![CDATA[Dosen]]></text>
+                <text><![CDATA[Dosen Pengampu]]></text>
             </staticText>
             <staticText>
-                <reportElement x="455" y="0" width="100" height="20" uuid="88888888-9999-0000-1111-222222222222"/>
+                <reportElement mode="Opaque" backcolor="#E6E6E6" x="415" y="0" width="100" height="25" uuid="88888888-9999-0000-1111-222222222222"/>
                 <box><pen lineWidth="0.5"/></box>
                 <textElement textAlignment="Center" verticalAlignment="Middle"><font isBold="true"/></textElement>
-                <text><![CDATA[Jadwal]]></text>
+                <text><![CDATA[Waktu]]></text>
             </staticText>
         </band>
     </columnHeader>
+    
     <detail>
         <band height="20" splitType="Stretch">
             <textField>
-                <reportElement x="0" y="0" width="70" height="20" uuid="99999999-0000-1111-2222-333333333333"/>
+                <reportElement x="0" y="0" width="60" height="20" uuid="99999999-0000-1111-2222-333333333333"/>
                 <box><pen lineWidth="0.5"/></box>
                 <textElement textAlignment="Center" verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$F{kode_mk}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="70" y="0" width="185" height="20" uuid="00000000-1111-2222-3333-444444444444"/>
+                <reportElement x="60" y="0" width="165" height="20" uuid="00000000-1111-2222-3333-444444444444"/>
                 <box leftPadding="5"><pen lineWidth="0.5"/></box>
                 <textElement verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$F{nama_mk}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="255" y="0" width="40" height="20" uuid="11112222-3333-4444-5555-666677778888"/>
+                <reportElement x="225" y="0" width="40" height="20" uuid="11112222-3333-4444-5555-666677778888"/>
                 <box><pen lineWidth="0.5"/></box>
                 <textElement textAlignment="Center" verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$F{sks} + ""]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="295" y="0" width="160" height="20" uuid="22223333-4444-5555-6666-777788889999"/>
+                <reportElement x="265" y="0" width="150" height="20" uuid="22223333-4444-5555-6666-777788889999"/>
                 <box leftPadding="5"><pen lineWidth="0.5"/></box>
                 <textElement verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$F{nama_dosen}]]></textFieldExpression>
             </textField>
             <textField>
-                <reportElement x="455" y="0" width="100" height="20" uuid="33334444-5555-6666-7777-888899990000"/>
+                <reportElement x="415" y="0" width="100" height="20" uuid="33334444-5555-6666-7777-888899990000"/>
                 <box><pen lineWidth="0.5"/></box>
                 <textElement textAlignment="Center" verticalAlignment="Middle"/>
                 <textFieldExpression><![CDATA[$F{hari} + ", " + $F{jam}]]></textFieldExpression>
             </textField>
         </band>
     </detail>
+    
     <summary>
-        <band height="30">
-            <textField>
-                <reportElement x="0" y="10" width="555" height="20" uuid="44445555-6666-7777-8888-999900001111"/>
+        <band height="140">
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#F0F0F0" x="0" y="0" width="225" height="20" uuid="44445555-6666-7777-8888-999900001111"/>
+                <box rightPadding="5"><pen lineWidth="0.5"/></box>
                 <textElement textAlignment="Right" verticalAlignment="Middle">
                     <font isBold="true"/>
                 </textElement>
-                <textFieldExpression><![CDATA["Total SKS: " + $F{total_sks}]]></textFieldExpression>
+                <text><![CDATA[Total SKS yang Diambil :]]></text>
+            </staticText>
+            <textField>
+                <reportElement mode="Opaque" backcolor="#F0F0F0" x="225" y="0" width="40" height="20" uuid="44445555-6666-7777-8888-999900002222"/>
+                <box><pen lineWidth="0.5"/></box>
+                <textElement textAlignment="Center" verticalAlignment="Middle">
+                    <font isBold="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{total_sks} + ""]]></textFieldExpression>
+            </textField>
+            <staticText>
+                <reportElement mode="Opaque" backcolor="#F0F0F0" x="265" y="0" width="250" height="20" uuid="44445555-6666-7777-8888-999900003333"/>
+                <box><pen lineWidth="0.5"/></box>
+                <text><![CDATA[]]></text>
+            </staticText>
+            
+            <textField pattern="dd MMMM yyyy">
+                <reportElement x="365" y="40" width="150" height="20" uuid="99999999-1111-2222-3333-444455556666"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <textFieldExpression><![CDATA["Pontianak, " + new java.text.SimpleDateFormat("dd MMMM yyyy", new java.util.Locale("id", "ID")).format(new java.util.Date())]]></textFieldExpression>
+            </textField>
+            
+            <staticText>
+                <reportElement x="0" y="60" width="150" height="20" uuid="88888888-1111-2222-3333-444455556666"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <text><![CDATA[Dosen Pembimbing Akademik,]]></text>
+            </staticText>
+            <staticText>
+                <reportElement x="365" y="60" width="150" height="20" uuid="77777777-1111-2222-3333-444455556666"/>
+                <textElement textAlignment="Center" verticalAlignment="Middle"/>
+                <text><![CDATA[Mahasiswa,]]></text>
+            </staticText>
+            
+            <staticText>
+                <reportElement x="0" y="115" width="150" height="15" uuid="66666666-1111-2222-3333-444455556666"/>
+                <textElement textAlignment="Center" verticalAlignment="Bottom"/>
+                <text><![CDATA[(...................................................)]]></text>
+            </staticText>
+            
+            <textField>
+                <reportElement x="365" y="115" width="150" height="15" uuid="55555555-1111-2222-3333-444455556666"/>
+                <textElement textAlignment="Center" verticalAlignment="Bottom">
+                    <font isUnderline="true"/>
+                </textElement>
+                <textFieldExpression><![CDATA[$F{nama_mhs}]]></textFieldExpression>
             </textField>
         </band>
     </summary>
