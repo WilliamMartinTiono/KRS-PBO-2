@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 07, 2026 at 09:26 AM
+-- Generation Time: Jul 13, 2026 at 12:25 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -46,7 +46,8 @@ INSERT INTO `admin` (`id_admin`, `username`, `password`) VALUES
 (24, '26002', '61b7ccdb512a7d8fcba8112acc60d6c2b84924f5307ce446a436b4b369576a72'),
 (25, 'testadmin', 'a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
 (26, '26003', 'b8d3c92f81f5fa2abd8e3b83e0a3a4c496f8337f1f6dcb5b8a0cb809ffbacdb4'),
-(27, '26004', '776a4317020f2f08c74ce1558f9eeb52cca478674175f7fd04f82f61004b1a64');
+(27, '26004', '776a4317020f2f08c74ce1558f9eeb52cca478674175f7fd04f82f61004b1a64'),
+(28, '26005', '850762090daa1b4dc90616ffe148b6ea2ab388445aa2d2af4f53a5e303640de5');
 
 -- --------------------------------------------------------
 
@@ -93,9 +94,11 @@ CREATE TABLE `kelas` (
 
 INSERT INTO `kelas` (`id_kelas`, `hari`, `jam`, `ruang`, `kuota`, `id_periode`, `kode_mk`, `nidn`) VALUES
 (8, 'Selasa', '06.00-07.00', '1.05', 39, 2, 'MK1002', '2603'),
-(9, 'Selasa', '05.00-07.00', '1.01', 37, 2, 'MK1005', '2602'),
+(9, 'Selasa', '05.00-07.00', '1.01', 35, 2, 'MK1005', '2602'),
 (10, 'Selasa', '05.00-08.00', '1.02', 39, 6, 'MK1004', '2603'),
-(11, 'Senin', '15.00-17.00', '1.04', 39, 3, 'MK1004', '2601');
+(11, 'Senin', '15.00-17.00', '1.04', 39, 3, 'MK1004', '2601'),
+(12, 'Jumat', '10.00-12.00', '1.03', 38, 2, 'MK1004', '2602'),
+(13, 'Rabu', '04.00-06.00', '1.06', 38, 2, 'MK1003', '2603');
 
 -- --------------------------------------------------------
 
@@ -120,7 +123,13 @@ INSERT INTO `krs_detail` (`id_krs`, `id_kelas`, `status_detail`, `catatan_mk`) V
 (7, 10, 'Disetujui', NULL),
 (8, 9, 'Disetujui', NULL),
 (9, 9, 'Disetujui', NULL),
-(9, 11, 'Disetujui', NULL);
+(9, 11, 'Disetujui', NULL),
+(10, 9, 'Disetujui', NULL),
+(10, 12, 'Disetujui', NULL),
+(10, 13, 'Disetujui', NULL),
+(11, 9, 'Disetujui', NULL),
+(11, 12, 'Disetujui', NULL),
+(11, 13, 'Disetujui', NULL);
 
 -- --------------------------------------------------------
 
@@ -149,7 +158,9 @@ INSERT INTO `krs_header` (`id_krs`, `total_sks`, `tgl_pengajuan`, `status_valida
 (6, 3, '2026-05-29', 'Disetujui', 'pengen aja', '26003', 4),
 (7, 4, '2026-06-05', 'Disetujui', NULL, '26001', 2),
 (8, 3, '2026-06-05', 'Disetujui', NULL, '26003', 2),
-(9, 7, '2026-06-05', 'Disetujui', '', '26002', 2);
+(9, 7, '2026-06-05', 'Disetujui', '', '26002', 2),
+(10, 10, '2026-07-13', 'Disetujui', '', '26005', 2),
+(11, 10, '2026-07-13', 'Disetujui', '', '26004', 2);
 
 -- --------------------------------------------------------
 
@@ -177,7 +188,8 @@ INSERT INTO `mahasiswa` (`nim`, `angkatan`, `semester_aktif`, `status_mahasiswa`
 ('26001', NULL, 1, 'Aktif', 'William Martin Tiono', 'asd', 3, '2602', 23),
 ('26002', NULL, 1, 'Aktif', 'Christ', '123123123', 2, '2603', 24),
 ('26003', NULL, 1, 'Aktif', 'Pris', 'asd', 4, '2601', 26),
-('26004', NULL, 1, 'Aktif', 'HENDRO', 'asasdasd', 1, '2601', 27);
+('26004', NULL, 1, 'Aktif', 'HENDRO', 'asasdasd', 1, '2601', 27),
+('26005', NULL, 1, 'Aktif', 'Mick', 'Apel', 4, '2601', 28);
 
 -- --------------------------------------------------------
 
@@ -200,8 +212,8 @@ INSERT INTO `mata_kuliah` (`kode_mk`, `nama_mk`, `sks`, `semester`) VALUES
 ('MK1001', 'PBO II', 3, 4),
 ('MK1002', 'DC', 3, 4),
 ('MK1003', 'STATIS', 3, 4),
-('MK1004', 'MAKANas', 4, 4),
-('MK1005', 'PERHOTAL', 3, 4);
+('MK1004', 'TATA BOGA', 4, 4),
+('MK1005', 'PERHOTELAN', 3, 4);
 
 -- --------------------------------------------------------
 
@@ -268,7 +280,8 @@ INSERT INTO `periode` (`id_periode`, `tahun_ajaran`, `semester`, `status_krs`) V
 (3, '2025/2026', 'Ganjil', 'Tutup'),
 (4, '2026/2027', 'Ganjil', 'Tutup'),
 (5, '2024/2025', 'Genap', 'Tutup'),
-(6, '2025/2026', 'Genap', 'Tutup');
+(6, '2025/2026', 'Genap', 'Tutup'),
+(7, '2026/2027', 'Genap', 'Tutup');
 
 -- --------------------------------------------------------
 
@@ -289,7 +302,7 @@ INSERT INTO `prodi` (`id_prodi`, `nama_prodi`) VALUES
 (1, 'BD'),
 (2, 'KWU'),
 (3, 'STI'),
-(4, 'ertre');
+(4, 'PEMASARAN');
 
 --
 -- Indexes for dumped tables
@@ -397,19 +410,19 @@ ALTER TABLE `prodi`
 -- AUTO_INCREMENT for table `admin`
 --
 ALTER TABLE `admin`
-  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id_admin` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `kelas`
 --
 ALTER TABLE `kelas`
-  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id_kelas` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
 -- AUTO_INCREMENT for table `krs_header`
 --
 ALTER TABLE `krs_header`
-  MODIFY `id_krs` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id_krs` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `mata_kuliah_prasyarat`
@@ -421,7 +434,7 @@ ALTER TABLE `mata_kuliah_prasyarat`
 -- AUTO_INCREMENT for table `periode`
 --
 ALTER TABLE `periode`
-  MODIFY `id_periode` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id_periode` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- Constraints for dumped tables
